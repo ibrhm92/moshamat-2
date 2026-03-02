@@ -522,6 +522,32 @@
   .guide-note { font-size: 12px; color: var(--text-muted); }
   .guide-note strong { color: var(--text); }
 
+  /* Import Month Filter */
+  .import-month-box {
+    background: rgba(240,180,41,0.07);
+    border: 1px solid rgba(240,180,41,0.2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .import-month-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+  .import-month-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .import-month-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
   /* Upload Area */
   .upload-area {
     border: 2px dashed rgba(255,255,255,0.15);
@@ -815,13 +841,47 @@
         </button>
       </div>
 
+      <!-- Month Filter -->
+      <div class="import-month-box">
+        <div class="import-month-label">📅 تحديد الشهر المراد استيراده</div>
+        <div class="import-month-row">
+          <div style="flex:1">
+            <select id="importMonthFilter" onchange="applyMonthFilter()">
+              <option value="">-- كل الشهور الموجودة في الملف --</option>
+              <option value="يناير 2026">يناير 2026</option>
+              <option value="فبراير 2026">فبراير 2026</option>
+              <option value="مارس 2026">مارس 2026</option>
+              <option value="أبريل 2026">أبريل 2026</option>
+              <option value="مايو 2026">مايو 2026</option>
+              <option value="يونيو 2026">يونيو 2026</option>
+              <option value="يوليو 2026">يوليو 2026</option>
+              <option value="أغسطس 2026">أغسطس 2026</option>
+              <option value="سبتمبر 2026">سبتمبر 2026</option>
+              <option value="أكتوبر 2026">أكتوبر 2026</option>
+              <option value="نوفمبر 2026">نوفمبر 2026</option>
+              <option value="ديسمبر 2026">ديسمبر 2026</option>
+              <option value="يناير 2027">يناير 2027</option>
+              <option value="فبراير 2027">فبراير 2027</option>
+              <option value="مارس 2027">مارس 2027</option>
+            </select>
+          </div>
+          <div id="importMonthBadge" style="display:none">
+            <span class="badge badge-green" id="importMonthCount"></span>
+          </div>
+        </div>
+        <div class="import-month-hint">اختر شهراً محدداً لاستيراد بياناته فقط، أو اتركه فارغاً لاستيراد الكل</div>
+      </div>
+
       <!-- Upload area -->
-      <div class="upload-area" id="uploadArea" onclick="document.getElementById('excelFile').click()" 
+      <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(event)">
+      <div class="upload-area" id="uploadArea"
            ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
-        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(event)">
         <div class="upload-icon">📂</div>
         <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
         <div class="upload-sub">xlsx / xls / csv</div>
+        <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+          📁 اختيار ملف
+        </button>
       </div>
 
       <!-- Preview -->
@@ -1418,6 +1478,29 @@
   }
 
   // ---------------------------------------------------
+  // Month Filter for Import
+  // ---------------------------------------------------
+  let allValidRows = []; // كل الصفوف الصحيحة من الملف قبل الفلتر
+
+  window.applyMonthFilter = function() {
+    if (!allValidRows.length) return;
+    const month = document.getElementById('importMonthFilter').value;
+    importRows = month ? allValidRows.filter(r => r.month === month) : [...allValidRows];
+
+    // Update badge
+    const badge = document.getElementById('importMonthBadge');
+    const countEl = document.getElementById('importMonthCount');
+    if (month) {
+      badge.style.display = 'block';
+      countEl.textContent = `${importRows.length} سجل في ${month}`;
+    } else {
+      badge.style.display = 'none';
+    }
+
+    renderPreview(importRows, []);
+  };
+
+  // ---------------------------------------------------
   // Settings Modal
   // ---------------------------------------------------
   window.openSettings = function() {
@@ -1479,6 +1562,11 @@
 
   async function processExcelFile(file) {
     resetImport();
+
+    // Show loading state
+    const area = document.getElementById('uploadArea');
+    area.innerHTML = `<div class="upload-icon pulse">⏳</div><div class="upload-text">جاري قراءة الملف...</div>`;
+
     const ext = file.name.split('.').pop().toLowerCase();
 
     try {
@@ -1486,54 +1574,114 @@
 
       if (ext === 'csv') {
         const text = await file.text();
-        // Remove BOM
-        const clean = text.replace(/^\uFEFF/, '');
+        const clean = text.replace(/^\uFEFF/, ''); // Remove BOM
         const lines = clean.split(/\r?\n/).filter(l => l.trim());
-        data = lines.map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
-      } else {
-        // xlsx / xls using SheetJS
+        data = lines.map(l => {
+          // Handle quoted CSV fields
+          const cols = [];
+          let cur = '', inQ = false;
+          for (const ch of l) {
+            if (ch === '"') { inQ = !inQ; }
+            else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+            else cur += ch;
+          }
+          cols.push(cur.trim());
+          return cols;
+        });
+      } else if (ext === 'xlsx' || ext === 'xls') {
         const XLSX = await loadSheetJS();
         const buffer = await file.arrayBuffer();
         const wb = XLSX.read(buffer, { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      } else {
+        throw new Error('صيغة الملف غير مدعومة. استخدم xlsx أو csv');
       }
 
-      if (data.length < 2) {
-        showToast('❌ الملف فارغ أو لا يحتوي بيانات', true); return;
+      if (!data.length || data.length < 2) {
+        throw new Error('الملف فارغ أو لا يحتوي على بيانات');
       }
 
-      // Skip header row
-      const rows = data.slice(1).filter(r => r.some(c => String(c).trim()));
+      // Skip header row, filter empty rows
+      const rows = data.slice(1).filter(r => r.some(c => String(c).trim() !== ''));
+      if (!rows.length) throw new Error('لا توجد بيانات بعد السطر الأول');
+
       const valid = [], errors = [];
 
       rows.forEach((r, i) => {
-        const name   = String(r[0] || '').trim();
-        const month  = String(r[1] || '').trim();
-        const amount = parseFloat(String(r[2] || '').replace(/[^0-9.]/g, ''));
+        const name   = String(r[0] ?? '').trim();
+        const month  = String(r[1] ?? '').trim();
+        const rawAmt = String(r[2] ?? '').replace(/[^0-9.]/g, '');
+        const amount = parseFloat(rawAmt);
 
-        if (!name)           { errors.push(`سطر ${i+2}: الاسم فارغ`); return; }
-        if (!month)          { errors.push(`سطر ${i+2}: الشهر فارغ`); return; }
-        if (isNaN(amount) || amount <= 0) { errors.push(`سطر ${i+2}: المبلغ غير صحيح (${r[2]})`); return; }
-
-        valid.push({ name, month, amount });
+        if (!name)                       errors.push(`سطر ${i+2}: الاسم فارغ`);
+        else if (!month)                 errors.push(`سطر ${i+2}: الشهر فارغ`);
+        else if (isNaN(amount) || amount <= 0) errors.push(`سطر ${i+2}: المبلغ غير صحيح "${r[2]}"`);
+        else valid.push({ name, month, amount });
       });
 
       importRows = valid;
+      allValidRows = [...valid];
+
+      // Auto-populate months found in file into the filter dropdown
+      const foundMonths = [...new Set(valid.map(r => r.month))].sort();
+      const sel = document.getElementById('importMonthFilter');
+      // Keep first "كل الشهور" option, remove old dynamic ones, add new
+      while (sel.options.length > 1) sel.remove(1);
+      foundMonths.forEach(m => {
+        const o = document.createElement('option');
+        o.value = m; o.textContent = m;
+        sel.appendChild(o);
+      });
+      // Auto-select if only one month found
+      if (foundMonths.length === 1) {
+        sel.value = foundMonths[0];
+        applyMonthFilter();
+      } else {
+        sel.value = '';
+        document.getElementById('importMonthBadge').style.display = 'none';
+      }
+
+      // Restore upload area
+      area.innerHTML = `
+        <div class="upload-icon">✅</div>
+        <div class="upload-text" style="color:var(--primary-light)">${file.name}</div>
+        <div class="upload-sub">${rows.length} صف - ${valid.length} صحيح</div>
+        <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+          📁 تغيير الملف
+        </button>`;
+
       renderPreview(valid, errors);
 
     } catch(e) {
-      showToast('خطأ في قراءة الملف: ' + e.message, true);
+      // Restore upload area on error
+      area.innerHTML = `
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
+        <div class="upload-sub">xlsx / xls / csv</div>
+        <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+          📁 اختيار ملف
+        </button>`;
+      showToast('❌ ' + e.message, true);
     }
   }
 
   async function loadSheetJS() {
     if (window.XLSX) return window.XLSX;
     return new Promise((res, rej) => {
+      const existing = document.querySelector('script[src*="xlsx"]');
+      if (existing) {
+        // Already loading, wait for it
+        const wait = setInterval(() => {
+          if (window.XLSX) { clearInterval(wait); res(window.XLSX); }
+        }, 100);
+        setTimeout(() => { clearInterval(wait); rej(new Error('انتهت مهلة تحميل مكتبة Excel')); }, 10000);
+        return;
+      }
       const s = document.createElement('script');
       s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-      s.onload = () => res(window.XLSX);
-      s.onerror = () => rej(new Error('فشل تحميل مكتبة Excel'));
+      s.onload = () => { if (window.XLSX) res(window.XLSX); else rej(new Error('فشل تهيئة المكتبة')); };
+      s.onerror = () => rej(new Error('فشل تحميل مكتبة Excel - تحقق من الاتصال'));
       document.head.appendChild(s);
     });
   }
@@ -1571,10 +1719,20 @@
 
   window.resetImport = function() {
     importRows = [];
+    allValidRows = [];
     document.getElementById('importPreview').style.display = 'none';
     document.getElementById('importProgress').style.display = 'none';
     document.getElementById('importResult').style.display = 'none';
+    document.getElementById('importMonthBadge').style.display = 'none';
+    document.getElementById('importMonthFilter').value = '';
     document.getElementById('excelFile').value = '';
+    document.getElementById('uploadArea').innerHTML = `
+      <div class="upload-icon">📂</div>
+      <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
+      <div class="upload-sub">xlsx / xls / csv</div>
+      <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+        📁 اختيار ملف
+      </button>`;
   };
 
   // ---------------------------------------------------
