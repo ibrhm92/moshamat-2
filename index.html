@@ -690,7 +690,7 @@
 
   <!-- Header -->
   <header>
-    <button class="btn-settings" onclick="openSettings()" title="الإعدادات">⚙️</button>
+    <button class="btn-settings" title="الإعدادات">⚙️</button>
     <span class="logo-icon">💰</span>
     <h1>مساهمات</h1>
     <p class="subtitle">نظام إدارة وتتبع المدفوعات الجماعية</p>
@@ -716,7 +716,7 @@
       <!-- Contributor Name -->
       <div class="form-group">
         <label>👤 اسم المساهم</label>
-        <select id="nameSelect" onchange="handleNameSelect()">
+        <select id="nameSelect">
           <option value="">-- اختر اسم --</option>
           <option value="__new__">+ إضافة اسم جديد</option>
         </select>
@@ -729,7 +729,7 @@
       <!-- Month -->
       <div class="form-group">
         <label>📅 الشهر</label>
-        <select id="monthSelect" onchange="updateStats()">
+        <select id="monthSelect">
           <option value="يناير 2026">يناير 2026</option>
           <option value="فبراير 2026">فبراير 2026</option>
           <option value="مارس 2026">مارس 2026</option>
@@ -768,13 +768,13 @@
     </label>
 
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="submitAndSend()" id="submitBtn" style="flex:2">
+      <button class="btn btn-primary" id="submitBtn" style="flex:2">
         📲 حفظ وإرسال للواتساب
       </button>
-      <button class="btn btn-outline" onclick="loadData()" id="refreshBtn">
+      <button class="btn btn-outline" id="refreshBtn">
         🔄 تحديث
       </button>
-      <button class="btn btn-amber" onclick="openModal()">
+      <button class="btn btn-amber" id="statsBtn">
         📊 الإحصائيات
       </button>
     </div>
@@ -787,11 +787,11 @@
 </div>
 
 <!-- Settings Modal -->
-<div class="modal-overlay" id="settingsModal" onclick="handleSettingsOverlay(event)">
+<div class="modal-overlay" id="settingsModal">
   <div class="modal" style="max-width:640px">
     <div class="modal-header">
       <div class="modal-title">⚙️ الإعدادات</div>
-      <button class="btn-close" onclick="closeSettings()">✕</button>
+      <button class="btn-close" id="closeSettingsBtn">✕</button>
     </div>
 
     <!-- Import Section -->
@@ -836,7 +836,7 @@
           <div class="guide-note">💵 المبلغ أرقام فقط بدون رموز العملة</div>
           <div class="guide-note">✅ يمكن استيراد عدة أشهر في نفس الوقت</div>
         </div>
-        <button class="btn btn-outline" onclick="downloadTemplate()" style="margin-top:12px;font-size:13px;padding:8px 16px">
+        <button class="btn btn-outline" id="downloadTemplateBtn" style="margin-top:12px;font-size:13px;padding:8px 16px">
           ⬇️ تحميل ملف نموذج فارغ
         </button>
       </div>
@@ -846,7 +846,7 @@
         <div class="import-month-label">📅 تحديد الشهر المراد استيراده</div>
         <div class="import-month-row">
           <div style="flex:1">
-            <select id="importMonthFilter" onchange="applyMonthFilter()">
+            <select id="importMonthFilter">
               <option value="">-- كل الشهور الموجودة في الملف --</option>
               <option value="يناير 2026">يناير 2026</option>
               <option value="فبراير 2026">فبراير 2026</option>
@@ -873,13 +873,13 @@
       </div>
 
       <!-- Upload area -->
-      <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileSelect(event)">
+      <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none">
       <div class="upload-area" id="uploadArea"
-           ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
+          >
         <div class="upload-icon">📂</div>
         <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
         <div class="upload-sub">xlsx / xls / csv</div>
-        <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+        <button class="btn btn-outline" id="chooseFileBtn" style="margin-top:14px;font-size:13px;padding:9px 20px">
           📁 اختيار ملف
         </button>
       </div>
@@ -900,10 +900,10 @@
         </div>
         <div id="importErrors" style="display:none" class="import-errors"></div>
         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="confirmImport()" id="confirmImportBtn" style="flex:1">
+          <button class="btn btn-primary" id="confirmImportBtn" style="flex:1">
             ✅ استيراد البيانات الصحيحة
           </button>
-          <button class="btn btn-outline" onclick="resetImport()" style="padding:12px 16px">
+          <button class="btn btn-outline" id="cancelImportBtn" style="padding:12px 16px">
             🗑️ إلغاء
           </button>
         </div>
@@ -925,13 +925,13 @@
 </div>
 
 <!-- Stats Modal -->
-<div class="modal-overlay" id="statsModal" onclick="handleOverlayClick(event)">
+<div class="modal-overlay" id="statsModal">
   <div class="modal" id="modalContent">
     <div class="modal-header no-print">
       <div class="modal-title">📊 الإحصائيات التفصيلية</div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline no-print" onclick="printStats()" style="padding:8px 14px;font-size:12px;">🖨️ طباعة</button>
-        <button class="btn-close" onclick="closeModal()">✕</button>
+        <button class="btn btn-outline no-print" id="printStatsBtn" style="padding:8px 14px;font-size:12px;">🖨️ طباعة</button>
+        <button class="btn-close" id="closeModalBtn">✕</button>
       </div>
     </div>
 
@@ -988,7 +988,7 @@
       <div class="modal-section-title">🔍 تصفية حسب الشهر</div>
       <div class="filter-row">
         <label>الشهر:</label>
-        <select id="filterMonth" onchange="renderFilteredStats()">
+        <select id="filterMonth">
           <option value="">-- كل الشهور --</option>
         </select>
       </div>
@@ -1294,12 +1294,8 @@
       .join('\n');
 
     let unpaidSection = '';
-    if (unpaidCount > 0) {
-      if (includeUnpaid) {
-        unpaidSection = `\n\n*من لم يدفع:*\n${unpaidNames}`;
-      }
-    } else {
-      unpaidSection = '\n\n🎉 الجميع دفعوا!';
+    if (unpaidCount > 0 && includeUnpaid) {
+      unpaidSection = `\n\n*من لم يدفع:*\n${unpaidNames}`;
     }
 
     const msg = `💰 *تسجيل مساهمة جديدة*
@@ -1311,9 +1307,7 @@
 📊 إجمالي ${month}: ${totalMonth.toLocaleString('ar-EG')} جنيه
 👥 عدد المشتركين: ${totalMembers}
 ✅ دفعوا: ${paidCount}
-❌ لم يدفعوا بعد: ${unpaidCount}${unpaidSection}
-━━━━━━━━━━━━━━━
-✅ تم التسجيل عبر نظام مساهمات`;
+❌ لم يدفعوا بعد: ${unpaidCount}${unpaidSection}`;
 
     const encoded = encodeURIComponent(msg);
     const url = waNum
@@ -1647,7 +1641,7 @@
         <div class="upload-icon">✅</div>
         <div class="upload-text" style="color:var(--primary-light)">${file.name}</div>
         <div class="upload-sub">${rows.length} صف - ${valid.length} صحيح</div>
-        <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+        <button class="btn btn-outline" onclick="document.getElementById('excelFile') && document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
           📁 تغيير الملف
         </button>`;
 
@@ -1659,7 +1653,7 @@
         <div class="upload-icon">📂</div>
         <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
         <div class="upload-sub">xlsx / xls / csv</div>
-        <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+        <button class="btn btn-outline" onclick="document.getElementById('excelFile') && document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
           📁 اختيار ملف
         </button>`;
       showToast('❌ ' + e.message, true);
@@ -1730,7 +1724,7 @@
       <div class="upload-icon">📂</div>
       <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
       <div class="upload-sub">xlsx / xls / csv</div>
-      <button class="btn btn-outline" onclick="document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
+      <button class="btn btn-outline" onclick="document.getElementById('excelFile') && document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
         📁 اختيار ملف
       </button>`;
   };
@@ -1828,6 +1822,74 @@
   // Boot
   setCurrentMonth();
   initFirebase();
+</script>
+
+<!-- سكريبت عادي لربط أحداث HTML بدوال الـ module -->
+<script>
+  // ننتظر حتى تنتهي الـ module من التحميل ثم نربط الأحداث
+  function bindEvents() {
+    // Header settings button
+    const settingsBtn = document.querySelector('.btn-settings');
+    if (settingsBtn) settingsBtn.onclick = () => window.openSettings();
+
+    // Close settings
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    if (closeSettingsBtn) closeSettingsBtn.onclick = () => window.closeSettings();
+
+    // Settings overlay
+    const settingsModal = document.getElementById('settingsModal');
+    if (settingsModal) settingsModal.onclick = (e) => { if (e.target.id === 'settingsModal') window.closeSettings(); };
+
+    // Stats modal overlay + close + print
+    const statsModal = document.getElementById('statsModal');
+    if (statsModal) statsModal.onclick = (e) => { if (e.target.id === 'statsModal') window.closeModal(); };
+    document.getElementById('closeModalBtn').onclick = () => window.closeModal();
+    document.getElementById('printStatsBtn').onclick = () => window.printStats();
+
+    // Main buttons
+    document.getElementById('submitBtn').onclick = () => window.submitAndSend();
+    document.getElementById('refreshBtn').onclick = () => window.loadData();
+    document.getElementById('statsBtn').onclick = () => window.openModal();
+
+    // Month select
+    document.getElementById('monthSelect').onchange = () => window.updateStats();
+
+    // Name select
+    document.getElementById('nameSelect').onchange = () => window.handleNameSelect();
+
+    // Filter month in stats modal
+    document.getElementById('filterMonth').onchange = () => window.renderFilteredStats();
+
+    // Import month filter
+    document.getElementById('importMonthFilter').onchange = () => window.applyMonthFilter();
+
+    // File input
+    document.getElementById('excelFile').onchange = (e) => window.handleFileSelect(e);
+
+    // Upload area drag events
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.ondragover = (e) => window.handleDragOver(e);
+    uploadArea.ondrop = (e) => window.handleDrop(e);
+    uploadArea.ondragleave = () => window.handleDragLeave();
+
+    // Download template
+    document.getElementById('downloadTemplateBtn').onclick = () => window.downloadTemplate();
+
+    // Choose file buttons (static ones)
+    document.getElementById('chooseFileBtn').onclick = () => document.getElementById('excelFile').click();
+
+    // Confirm / cancel import
+    document.getElementById('confirmImportBtn').onclick = () => window.confirmImport();
+    document.getElementById('cancelImportBtn').onclick = () => window.resetImport();
+  }
+
+  // ننتظر الـ module تنتهي (تضع الدوال على window)
+  const waitForModule = setInterval(() => {
+    if (window.openSettings && window.loadData) {
+      clearInterval(waitForModule);
+      bindEvents();
+    }
+  }, 50);
 </script>
 </body>
 </html>
