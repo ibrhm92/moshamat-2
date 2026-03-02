@@ -752,12 +752,6 @@
       </div>
     </div>
 
-    <!-- WhatsApp Number -->
-    <div class="form-group" style="margin-bottom:12px">
-      <label>📱 رقم واتساب المجموعة (اختياري)</label>
-      <input type="text" id="waNumber" placeholder="مثال: 201012345678" style="direction:ltr">
-    </div>
-
     <!-- Toggle: include unpaid names -->
     <label class="toggle-row" style="margin-bottom:20px">
       <div class="toggle-switch">
@@ -792,6 +786,22 @@
     <div class="modal-header">
       <div class="modal-title">⚙️ الإعدادات</div>
       <button class="btn-close" id="closeSettingsBtn">✕</button>
+    </div>
+
+    <!-- WhatsApp Group Section -->
+    <div class="modal-section">
+      <div class="modal-section-title">📲 إعداد جروب الواتساب</div>
+      <div class="form-group">
+        <label>🔗 رابط دعوة الجروب</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="waGroupLink" placeholder="https://chat.whatsapp.com/XXXXXXXXXXXXXXX" style="direction:ltr;flex:1;font-size:13px">
+          <button class="btn btn-primary" id="saveGroupLinkBtn" style="padding:11px 16px;font-size:13px;white-space:nowrap">💾 حفظ</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">
+          📌 من الجروب: النقر على اسم الجروب ← رابط الدعوة ← نسخ الرابط
+        </div>
+      </div>
+      <div id="groupLinkStatus" style="display:none;margin-top:10px"></div>
     </div>
 
     <!-- Import Section -->
@@ -1141,11 +1151,13 @@
   // ---------------------------------------------------
   window.populateNameDropdown = function() {
     const month = document.getElementById('monthSelect').value;
-    const paidIds = allPayments
+    const paidIds = new Set(allPayments
       .filter(p => p.month === month)
-      .map(p => p.contributorId);
+      .map(p => p.contributorId));
 
-    const unpaidContributors = allContributors.filter(c => !paidIds.includes(c.id));
+    const unpaidContributors = allContributors
+      .filter(c => !paidIds.has(c.id))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 
     const sel = document.getElementById('nameSelect');
     const current = sel.value;
@@ -1279,7 +1291,6 @@
     if (!saved) { showToast('❌ سجّل المساهمة أولاً', true); return; }
 
     const { name, month, amount } = saved;
-    const waNum = document.getElementById('waNumber').value.trim();
 
     const monthPay = allPayments.filter(p => p.month === month);
     const totalMonth = monthPay.reduce((s, p) => s + (Number(p.amount)||0), 0);
@@ -1310,10 +1321,17 @@
 ❌ لم يدفعوا بعد: ${unpaidCount}${unpaidSection}`;
 
     const encoded = encodeURIComponent(msg);
-    const url = waNum
-      ? `https://wa.me/${waNum.replace(/\D/g,'')}?text=${encoded}`
-      : `https://wa.me/?text=${encoded}`;
-    window.open(url, '_blank');
+    const groupLink = localStorage.getItem('wa_group_link');
+
+    if (groupLink && groupLink.includes('chat.whatsapp.com/')) {
+      // يفتح الجروب مباشرة — الرسالة في الكليبورد
+      navigator.clipboard.writeText(msg).catch(()=>{});
+      window.open(groupLink, '_blank');
+      showToast('✅ تم فتح الجروب — الرسالة جاهزة للصق 📋');
+    } else {
+      // fallback: يفتح واتساب مع الرسالة جاهزة
+      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+    }
   };
 
   // ---------------------------------------------------
@@ -1495,9 +1513,41 @@
   };
 
   // ---------------------------------------------------
+  // WhatsApp Group Link
+  // ---------------------------------------------------
+  window.saveGroupLink = function() {
+    const val = document.getElementById('waGroupLink').value.trim();
+    const statusEl = document.getElementById('groupLinkStatus');
+
+    if (!val) {
+      localStorage.removeItem('wa_group_link');
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = `<span style="color:var(--text-muted);font-size:13px">🗑️ تم حذف الرابط</span>`;
+      return;
+    }
+
+    if (!val.includes('chat.whatsapp.com/') && !val.startsWith('https://wa.me/')) {
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = `<span style="color:#e74c3c;font-size:13px">❌ رابط غير صحيح — يجب أن يبدأ بـ https://chat.whatsapp.com/</span>`;
+      return;
+    }
+
+    localStorage.setItem('wa_group_link', val);
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = `<span style="color:var(--primary-light);font-size:13px">✅ تم حفظ رابط الجروب بنجاح</span>`;
+    showToast('✅ تم حفظ رابط الجروب');
+  };
+
+  function loadSavedGroupLink() {
+    const saved = localStorage.getItem('wa_group_link');
+    if (saved) document.getElementById('waGroupLink').value = saved;
+  }
+
+  // ---------------------------------------------------
   // Settings Modal
   // ---------------------------------------------------
   window.openSettings = function() {
+    loadSavedGroupLink();
     document.getElementById('settingsModal').classList.add('open');
     document.body.style.overflow = 'hidden';
   };
@@ -1876,6 +1926,7 @@
     document.getElementById('downloadTemplateBtn').onclick = () => window.downloadTemplate();
 
     // Choose file buttons (static ones)
+    document.getElementById('saveGroupLinkBtn').onclick = () => window.saveGroupLink();
     document.getElementById('chooseFileBtn').onclick = () => document.getElementById('excelFile').click();
 
     // Confirm / cancel import
