@@ -1,1315 +1,1713 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مساهمات - نظام إدارة المدفوعات</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --primary: #1a6b4a;
-    --primary-light: #2ecc71;
-    --primary-dark: #0d4a33;
-    --accent: #f0b429;
-    --accent-dark: #d4950a;
-    --danger: #e74c3c;
-    --bg: #0a1628;
-    --bg2: #0f2040;
-    --bg3: #162a4a;
-    --card: rgba(255,255,255,0.04);
-    --card-border: rgba(255,255,255,0.08);
-    --text: #e8f4f0;
-    --text-muted: #8aa8b8;
-    --radius: 16px;
-    --shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Cairo', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: 
-      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(26,107,74,0.25) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 80% 100%, rgba(240,180,41,0.1) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(15,32,64,0.8) 0%, transparent 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .container {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px 16px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Header */
-  header {
-    text-align: center;
-    padding: 40px 0 32px;
-    position: relative;
-  }
-
-  header::after {
-    content: '';
-    display: block;
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--primary-light), var(--accent));
-    margin: 16px auto 0;
-    border-radius: 2px;
-  }
-
-  .logo-icon {
-    font-size: 48px;
-    margin-bottom: 8px;
-    display: block;
-    filter: drop-shadow(0 0 20px rgba(46,204,113,0.4));
-  }
-
-  h1 {
-    font-size: clamp(28px, 5vw, 42px);
-    font-weight: 900;
-    background: linear-gradient(135deg, #2ecc71, #f0b429);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -1px;
-  }
-
-  .subtitle {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin-top: 4px;
-    font-family: 'Tajawal', sans-serif;
-  }
-
-  /* Config Banner */
-  .config-banner {
-    background: linear-gradient(135deg, rgba(240,180,41,0.15), rgba(240,180,41,0.05));
-    border: 1px solid rgba(240,180,41,0.3);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    color: #f0b429;
-  }
-
-  .config-banner code {
-    background: rgba(0,0,0,0.3);
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-family: monospace;
-    font-size: 12px;
-    color: #fff;
-  }
-
-  /* Stats Strip */
-  .stats-strip {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    backdrop-filter: blur(12px);
-    transition: transform 0.2s, border-color 0.2s;
-  }
-
-  .stat-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
-
-  .stat-card .val {
-    font-size: 36px;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .stat-card .lbl {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-family: 'Tajawal', sans-serif;
-  }
-
-  .stat-card.green .val { color: var(--primary-light); }
-  .stat-card.amber .val { color: var(--accent); }
-
-  /* Main Card */
-  .main-card {
-    background: var(--card);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 28px;
-    backdrop-filter: blur(12px);
-    margin-bottom: 24px;
-  }
-
-  .section-title {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--primary-light);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group.full { grid-column: 1 / -1; }
-
-  label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  select, input[type="number"], input[type="text"] {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    color: var(--text);
-    padding: 12px 14px;
-    font-family: 'Cairo', sans-serif;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s, background 0.2s;
-    width: 100%;
-    -webkit-appearance: none;
-  }
-
-  select:focus, input:focus {
-    border-color: var(--primary-light);
-    background: rgba(46,204,113,0.07);
-  }
-
-  select option { background: #1a2a3a; color: var(--text); }
-
-  .new-name-input { margin-top: 8px; display: none; }
-  .new-name-input.show { display: flex; flex-direction: column; gap: 6px; }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 13px 22px;
-    border-radius: 12px;
-    border: none;
-    font-family: 'Cairo', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .btn:active { transform: scale(0.97); }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(46,204,113,0.3);
-  }
-  .btn-primary:hover { box-shadow: 0 6px 20px rgba(46,204,113,0.5); transform: translateY(-1px); }
-
-  .btn-whatsapp {
-    background: linear-gradient(135deg, #128C7E, #25D366);
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(37,211,102,0.3);
-  }
-  .btn-whatsapp:hover { box-shadow: 0 6px 20px rgba(37,211,102,0.5); transform: translateY(-1px); }
-
-  .btn-outline {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: var(--text);
-  }
-  .btn-outline:hover { border-color: var(--primary-light); color: var(--primary-light); }
-
-  .btn-amber {
-    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-    color: #1a1a1a;
-    box-shadow: 0 4px 15px rgba(240,180,41,0.3);
-  }
-
-  .btn-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .btn-row .btn { flex: 1; min-width: 120px; }
-
-  /* Toast */
-  #toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: #1e3a2a;
-    border: 1px solid var(--primary-light);
-    color: var(--text);
-    padding: 12px 24px;
-    border-radius: 40px;
-    font-size: 14px;
-    transition: transform 0.3s ease;
-    z-index: 9999;
-    white-space: nowrap;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-  #toast.error { background: #3a1e1e; border-color: var(--danger); }
-
-  /* Loading */
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Modal */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(6px);
-    z-index: 1000;
-    display: none;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 24px 16px;
-    overflow-y: auto;
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: #0f2040;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
-    width: 100%;
-    max-width: 760px;
-    padding: 28px;
-    position: relative;
-    animation: slideUp 0.3s ease;
-    margin: auto;
-  }
-  @keyframes slideUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .modal-title { font-size: 20px; font-weight: 700; }
-
-  .btn-close {
-    background: rgba(255,255,255,0.08);
-    border: none;
-    color: var(--text);
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    font-size: 18px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.2s;
-  }
-  .btn-close:hover { background: rgba(255,0,0,0.2); }
-
-  /* Summary Cards */
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .summary-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-  }
-
-  .summary-card .s-val { font-size: 24px; font-weight: 900; color: var(--primary-light); }
-  .summary-card .s-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-
-  /* Table */
-  .table-wrap { overflow-x: auto; border-radius: 12px; margin-bottom: 20px; }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  th {
-    background: rgba(26,107,74,0.3);
-    padding: 10px 14px;
-    text-align: right;
-    font-weight: 700;
-    font-size: 12px;
-    color: var(--primary-light);
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-  }
-
-  td {
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    white-space: nowrap;
-  }
-
-  tr:hover td { background: rgba(255,255,255,0.03); }
-
-  .badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .badge-green { background: rgba(46,204,113,0.15); color: var(--primary-light); }
-  .badge-red { background: rgba(231,76,60,0.15); color: #e74c3c; }
-
-  /* Month filter */
-  .filter-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .filter-row label { margin: 0; white-space: nowrap; }
-  .filter-row select { width: auto; flex: 1; min-width: 160px; }
-
-  /* Section Divider */
-  .modal-section {
-    margin-bottom: 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  .modal-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-  .modal-section-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  /* Status cards in modal */
-  .status-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .status-card {
-    background: rgba(255,255,255,0.04);
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-  }
-  .status-card .s-v { font-size: 22px; font-weight: 900; }
-  .status-card .s-l { font-size: 10px; color: var(--text-muted); }
-
-  /* Unpaid list */
-  .unpaid-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .unpaid-chip {
-    background: rgba(231,76,60,0.12);
-    border: 1px solid rgba(231,76,60,0.25);
-    color: #e74c3c;
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  /* Settings Button */
-  .btn-settings {
-    position: absolute;
-    top: 40px;
-    left: 0;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: var(--text);
-    width: 42px; height: 42px;
-    border-radius: 12px;
-    font-size: 20px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-  }
-  .btn-settings:hover { background: rgba(255,255,255,0.13); transform: rotate(30deg); }
-
-  /* Excel Guide */
-  .excel-guide {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-  .guide-title { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
-  .guide-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
-
-  .excel-preview { overflow-x: auto; border-radius: 8px; margin-bottom: 12px; }
-  .excel-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .excel-table th {
-    background: rgba(26,107,74,0.4);
-    padding: 8px 12px;
-    text-align: right;
-    color: var(--primary-light);
-    font-size: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-  }
-  .excel-table td {
-    padding: 7px 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.02);
-  }
-
-  .guide-notes { display: flex; flex-direction: column; gap: 5px; }
-  .guide-note { font-size: 12px; color: var(--text-muted); }
-  .guide-note strong { color: var(--text); }
-
-  /* Import Month Filter */
-  .import-month-box {
-    background: rgba(240,180,41,0.07);
-    border: 1px solid rgba(240,180,41,0.2);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-  }
-  .import-month-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent);
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
-  }
-  .import-month-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .import-month-hint {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 8px;
-  }
-
-  /* Upload Area */
-  .upload-area {
-    border: 2px dashed rgba(255,255,255,0.15);
-    border-radius: 14px;
-    padding: 32px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 16px;
-    background: rgba(255,255,255,0.02);
-  }
-  .upload-area:hover, .upload-area.drag-over {
-    border-color: var(--primary-light);
-    background: rgba(46,204,113,0.06);
-  }
-  .upload-icon { font-size: 36px; margin-bottom: 8px; }
-  .upload-text { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .upload-sub { font-size: 12px; color: var(--text-muted); }
-
-  /* Preview */
-  .preview-header {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 10px;
-    font-size: 13px; font-weight: 700;
-  }
-
-  /* Progress */
-  .progress-bar-wrap {
-    background: rgba(255,255,255,0.08);
-    border-radius: 20px;
-    height: 10px;
-    overflow: hidden;
-    margin-top: 16px;
-  }
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary), var(--primary-light));
-    border-radius: 20px;
-    width: 0%;
-    transition: width 0.3s ease;
-  }
-
-  /* Import Errors */
-  .import-errors {
-    background: rgba(231,76,60,0.08);
-    border: 1px solid rgba(231,76,60,0.2);
-    border-radius: 10px;
-    padding: 12px;
-    margin-top: 10px;
-    font-size: 12px;
-    color: #e74c3c;
-    max-height: 100px;
-    overflow-y: auto;
-  }
-
-  /* Import Result */
-  .result-card {
-    background: rgba(46,204,113,0.08);
-    border: 1px solid rgba(46,204,113,0.25);
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-    margin-top: 12px;
-  }
-  .result-card.error {
-    background: rgba(231,76,60,0.08);
-    border-color: rgba(231,76,60,0.25);
-  }
-
-  /* Toggle Switch */
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
-  .toggle-switch input { opacity: 0; width: 0; height: 0; }
-  .slider {
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.1);
-    border-radius: 24px;
-    transition: 0.3s;
-    border: 1px solid rgba(255,255,255,0.15);
-  }
-  .slider::before {
-    content: '';
-    position: absolute;
-    width: 18px; height: 18px;
-    right: 3px; top: 2px;
-    background: #fff;
-    border-radius: 50%;
-    transition: 0.3s;
-  }
-  .toggle-switch input:checked + .slider { background: var(--primary); border-color: var(--primary-light); }
-  .toggle-switch input:checked + .slider::before { transform: translateX(-20px); }
-  .toggle-label { font-size: 13px; color: var(--text-muted); }
-
-  /* Print */
-  @media print {
-    body { background: #fff; color: #000; }
-    .no-print { display: none !important; }
-    .modal-overlay { position: static; background: none; }
-    .modal { border: none; background: #fff; }
-    th { background: #e0f0e8 !important; color: #1a6b4a !important; }
-  }
-
-  /* Responsive */
-  @media (max-width: 600px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .stats-strip { grid-template-columns: 1fr 1fr; }
-    .summary-grid { grid-template-columns: 1fr; }
-    .status-grid { grid-template-columns: 1fr 1fr; }
-    .btn-row { flex-direction: column; }
-    .btn-row .btn { width: 100%; }
-    .main-card { padding: 20px 16px; }
-    .modal { padding: 20px 16px; }
-  }
-
-  /* Animation */
-  .fade-in { animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:translateY(0); } }
-
-  .pulse { animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
-
-  /* Empty state */
-  .empty { text-align: center; padding: 32px; color: var(--text-muted); font-size: 14px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مساهمات - نظام إدارة المدفوعات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1a6b4a;
+      --primary-light: #2ecc71;
+      --primary-dark: #0d4a33;
+      --accent: #f0b429;
+      --accent-dark: #d4950a;
+      --danger: #e74c3c;
+      --bg: #0a1628;
+      --bg2: #0f2040;
+      --bg3: #162a4a;
+      --card: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #e8f4f0;
+      --text-muted: #8aa8b8;
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(26, 107, 74, 0.25) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(240, 180, 41, 0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(15, 32, 64, 0.8) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 40px 0 32px;
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary-light), var(--accent));
+      margin: 16px auto 0;
+      border-radius: 2px;
+    }
+
+    .logo-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+      display: block;
+      filter: drop-shadow(0 0 20px rgba(46, 204, 113, 0.4));
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 900;
+      background: linear-gradient(135deg, #2ecc71, #f0b429);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    /* Config Banner */
+    .config-banner {
+      background: linear-gradient(135deg, rgba(240, 180, 41, 0.15), rgba(240, 180, 41, 0.05));
+      border: 1px solid rgba(240, 180, 41, 0.3);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #f0b429;
+    }
+
+    .config-banner code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #fff;
+    }
+
+    /* Stats Strip */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .stat-card .val {
+      font-size: 36px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .lbl {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .stat-card.green .val {
+      color: var(--primary-light);
+    }
+
+    .stat-card.amber .val {
+      color: var(--accent);
+    }
+
+    /* Main Card */
+    .main-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 28px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    select,
+    input[type="number"],
+    input[type="text"] {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 12px 14px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--primary-light);
+      background: rgba(46, 204, 113, 0.07);
+    }
+
+    select option {
+      background: #1a2a3a;
+      color: var(--text);
+    }
+
+    .new-name-input {
+      margin-top: 8px;
+      display: none;
+    }
+
+    .new-name-input.show {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: 12px;
+      border: none;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #128C7E, #25D366);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    }
+
+    .btn-whatsapp:hover {
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary-light);
+      color: var(--primary-light);
+    }
+
+    .btn-amber {
+      background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+      color: #1a1a1a;
+      box-shadow: 0 4px 15px rgba(240, 180, 41, 0.3);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-row .btn {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e3a2a;
+      border: 1px solid var(--primary-light);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 40px;
+      font-size: 14px;
+      transition: transform 0.3s ease;
+      z-index: 9999;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #toast.error {
+      background: #3a1e1e;
+      border-color: var(--danger);
+    }
+
+    /* Loading */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: #0f2040;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 760px;
+      padding: 28px;
+      position: relative;
+      animation: slideUp 0.3s ease;
+      margin: auto;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .btn-close {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .btn-close:hover {
+      background: rgba(255, 0, 0, 0.2);
+    }
+
+    /* Summary Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .summary-card .s-val {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--primary-light);
+    }
+
+    .summary-card .s-lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(26, 107, 74, 0.3);
+      padding: 10px 14px;
+      text-align: right;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--primary-light);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      white-space: nowrap;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-green {
+      background: rgba(46, 204, 113, 0.15);
+      color: var(--primary-light);
+    }
+
+    .badge-red {
+      background: rgba(231, 76, 60, 0.15);
+      color: #e74c3c;
+    }
+
+    /* Month filter */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-row label {
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .filter-row select {
+      width: auto;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    /* Section Divider */
+    .modal-section {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .modal-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .modal-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Status cards in modal */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .status-card {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .status-card .s-v {
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .status-card .s-l {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Unpaid list */
+    .unpaid-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .unpaid-chip {
+      background: rgba(231, 76, 60, 0.12);
+      border: 1px solid rgba(231, 76, 60, 0.25);
+      color: #e74c3c;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    
+    /* Excel Guide */
+    .excel-guide {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .guide-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .guide-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .excel-preview {
+      overflow-x: auto;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .excel-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .excel-table th {
+      background: rgba(26, 107, 74, 0.4);
+      padding: 8px 12px;
+      text-align: right;
+      color: var(--primary-light);
+      font-size: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .excel-table td {
+      padding: 7px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .guide-notes {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .guide-note {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .guide-note strong {
+      color: var(--text);
+    }
+
+    /* Import Month Filter */
+    .import-month-box {
+      background: rgba(240, 180, 41, 0.07);
+      border: 1px solid rgba(240, 180, 41, 0.2);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .import-month-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .import-month-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .import-month-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .upload-area:hover,
+    .upload-area.drag-over {
+      border-color: var(--primary-light);
+      background: rgba(46, 204, 113, 0.06);
+    }
+
+    .upload-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .upload-text {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .upload-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Preview */
+    .preview-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* Progress */
+    .progress-bar-wrap {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      height: 10px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 20px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Import Errors */
+    .import-errors {
+      background: rgba(231, 76, 60, 0.08);
+      border: 1px solid rgba(231, 76, 60, 0.2);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #e74c3c;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    /* Import Result */
+    .result-card {
+      background: rgba(46, 204, 113, 0.08);
+      border: 1px solid rgba(46, 204, 113, 0.25);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .result-card.error {
+      background: rgba(231, 76, 60, 0.08);
+      border-color: rgba(231, 76, 60, 0.25);
+    }
+
+    /* Toggle Switch */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      transition: 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      right: 3px;
+      top: 2px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+
+    .toggle-switch input:checked+.slider {
+      background: var(--primary);
+      border-color: var(--primary-light);
+    }
+
+    .toggle-switch input:checked+.slider::before {
+      transform: translateX(-20px);
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Print */
+    @media print {
+      body {
+        background: #fff;
+        color: #000;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .modal-overlay {
+        position: static;
+        background: none;
+      }
+
+      .modal {
+        border: none;
+        background: #fff;
+      }
+
+      th {
+        background: #e0f0e8 !important;
+        color: #1a6b4a !important;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .status-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .btn-row {
+        flex-direction: column;
+      }
+
+      .btn-row .btn {
+        width: 100%;
+      }
+
+      .main-card {
+        padding: 20px 16px;
+      }
+
+      .modal {
+        padding: 20px 16px;
+      }
+    }
+
+    /* Animation */
+    .fade-in {
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
-  <!-- Config Banner - hidden, Firebase configured -->
-  <div class="config-banner" id="configBanner" style="display:none">
-    ⚙️ <span>لاستخدام التطبيق، ضع إعدادات Firebase في المتغير <code>FIREBASE_CONFIG</code> بداية الكود</span>
-  </div>
-
-  <!-- Header -->
-  <header>
-    <button class="btn-settings" title="الإعدادات">⚙️</button>
-    <span class="logo-icon">💰</span>
-    <h1>مساهمات</h1>
-    <p class="subtitle">نظام إدارة وتتبع المدفوعات الجماعية</p>
-  </header>
-
-  <!-- Stats Strip -->
-  <div class="stats-strip">
-    <div class="stat-card green fade-in">
-      <div class="val" id="totalAmount">0</div>
-      <div class="lbl">💵 إجمالي الشهر (جنيه)</div>
+  <div class="container">
+    <!-- Config Banner - hidden, Firebase configured -->
+    <div class="config-banner" id="configBanner" style="display:none">
+      ⚙️ <span>لاستخدام التطبيق، ضع إعدادات Firebase في المتغير <code>FIREBASE_CONFIG</code> بداية الكود</span>
     </div>
-    <div class="stat-card amber fade-in">
-      <div class="val" id="unpaidCount">0</div>
-      <div class="lbl">❌ لم يدفعوا بعد</div>
+
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">💰</span>
+      <h1>مساهمات</h1>
+      <p class="subtitle">نظام إدارة وتتبع المدفوعات الجماعية</p>
+    </header>
+
+    <!-- Stats Strip -->
+    <div class="stats-strip">
+      <div class="stat-card green fade-in">
+        <div class="val" id="totalAmount">0</div>
+        <div class="lbl">💵 إجمالي الشهر (جنيه)</div>
+      </div>
+      <div class="stat-card amber fade-in">
+        <div class="val" id="unpaidCount">0</div>
+        <div class="lbl">❌ لم يدفعوا بعد</div>
+      </div>
     </div>
-  </div>
 
-  <!-- Main Form Card -->
-  <div class="main-card fade-in">
-    <div class="section-title">📝 تسجيل مساهمة جديدة</div>
+    <!-- Main Form Card -->
+    <div class="main-card fade-in">
+      <div class="section-title">📝 تسجيل مساهمة جديدة</div>
 
-    <div class="form-grid">
-      <!-- Contributor Name -->
-      <div class="form-group">
-        <label>👤 اسم المساهم</label>
-        <select id="nameSelect">
-          <option value="">-- اختر اسم --</option>
-          <option value="__new__">+ إضافة اسم جديد</option>
-        </select>
-        <div class="new-name-input" id="newNameGroup">
-          <label>✏️ الاسم الجديد</label>
-          <input type="text" id="newNameInput" placeholder="اكتب الاسم كاملاً">
+      <div class="form-grid">
+        <!-- Contributor Name -->
+        <div class="form-group">
+          <label>👤 اسم المساهم</label>
+          <select id="nameSelect">
+            <option value="">-- اختر اسم --</option>
+            <option value="__new__">+ إضافة اسم جديد</option>
+          </select>
+          <div class="new-name-input" id="newNameGroup">
+            <label>✏️ الاسم الجديد</label>
+            <input type="text" id="newNameInput" placeholder="اكتب الاسم كاملاً">
+          </div>
+        </div>
+
+        <!-- Month -->
+        <div class="form-group">
+          <label>📅 الشهر</label>
+          <select id="monthSelect">
+            <option value="يناير 2026">يناير 2026</option>
+            <option value="فبراير 2026">فبراير 2026</option>
+            <option value="مارس 2026">مارس 2026</option>
+            <option value="أبريل 2026">أبريل 2026</option>
+            <option value="مايو 2026">مايو 2026</option>
+            <option value="يونيو 2026">يونيو 2026</option>
+            <option value="يوليو 2026">يوليو 2026</option>
+            <option value="أغسطس 2026">أغسطس 2026</option>
+            <option value="سبتمبر 2026">سبتمبر 2026</option>
+            <option value="أكتوبر 2026">أكتوبر 2026</option>
+            <option value="نوفمبر 2026">نوفمبر 2026</option>
+            <option value="ديسمبر 2026">ديسمبر 2026</option>
+          </select>
+        </div>
+
+        <!-- Amount -->
+        <div class="form-group full">
+          <label>💵 مبلغ المساهمة (جنيه)</label>
+          <input type="number" id="amountInput" placeholder="أدخل المبلغ" min="0" step="0.01">
         </div>
       </div>
 
-      <!-- Month -->
-      <div class="form-group">
-        <label>📅 الشهر</label>
-        <select id="monthSelect">
-          <option value="يناير 2026">يناير 2026</option>
-          <option value="فبراير 2026">فبراير 2026</option>
-          <option value="مارس 2026">مارس 2026</option>
-          <option value="أبريل 2026">أبريل 2026</option>
-          <option value="مايو 2026">مايو 2026</option>
-          <option value="يونيو 2026">يونيو 2026</option>
-          <option value="يوليو 2026">يوليو 2026</option>
-          <option value="أغسطس 2026">أغسطس 2026</option>
-          <option value="سبتمبر 2026">سبتمبر 2026</option>
-          <option value="أكتوبر 2026">أكتوبر 2026</option>
-          <option value="نوفمبر 2026">نوفمبر 2026</option>
-          <option value="ديسمبر 2026">ديسمبر 2026</option>
-        </select>
-      </div>
+      <!-- Toggle: include unpaid names -->
+      <label class="toggle-row" style="margin-bottom:20px">
+        <div class="toggle-switch">
+          <input type="checkbox" id="includeUnpaid">
+          <span class="slider"></span>
+        </div>
+        <span class="toggle-label">❌ إضافة أسماء من لم يدفعوا في رسالة الواتساب</span>
+      </label>
 
-      <!-- Amount -->
-      <div class="form-group full">
-        <label>💵 مبلغ المساهمة (جنيه)</label>
-        <input type="number" id="amountInput" placeholder="أدخل المبلغ" min="0" step="0.01">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="submitBtn" style="flex:2">
+          📲 حفظ وإرسال للواتساب
+        </button>
+        <button class="btn btn-outline" id="refreshBtn">
+          🔄 تحديث
+        </button>
+        <button class="btn btn-amber" id="statsBtn">
+          📊 الإحصائيات
+        </button>
+        <button class="btn btn-outline" onclick="window.openSettings()">
+          ⚙️ الإعدادات
+        </button>
       </div>
     </div>
 
-    <!-- Toggle: include unpaid names -->
-    <label class="toggle-row" style="margin-bottom:20px">
-      <div class="toggle-switch">
-        <input type="checkbox" id="includeUnpaid" checked>
-        <span class="slider"></span>
-      </div>
-      <span class="toggle-label">❌ إضافة أسماء من لم يدفعوا في رسالة الواتساب</span>
-    </label>
+    <!-- Footer -->
+    <p style="text-align:center; color:var(--text-muted); font-size:12px; padding-bottom:24px;">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
 
-    <div class="btn-row">
-      <button class="btn btn-primary" id="submitBtn" style="flex:2">
-        📲 حفظ وإرسال للواتساب
-      </button>
-      <button class="btn btn-outline" id="refreshBtn">
-        🔄 تحديث
-      </button>
-      <button class="btn btn-amber" id="statsBtn">
-        📊 الإحصائيات
-      </button>
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ الإعدادات</div>
+        <button class="btn-close" id="closeSettingsBtn">✕</button>
+      </div>
+
+      <!-- WhatsApp Group Section -->
+      <div class="modal-section">
+        <div class="modal-section-title">📲 إعداد جروب الواتساب</div>
+        <div class="form-group">
+          <label>🔗 رابط دعوة الجروب</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="waGroupLink" placeholder="https://chat.whatsapp.com/XXXXXXXXXXXXXXX"
+              style="direction:ltr;flex:1;font-size:13px">
+            <button class="btn btn-primary" id="saveGroupLinkBtn"
+              style="padding:11px 16px;font-size:13px;white-space:nowrap">💾 حفظ</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px">
+            📌 من الجروب: النقر على اسم الجروب ← رابط الدعوة ← نسخ الرابط
+          </div>
+        </div>
+        <div id="groupLinkStatus" style="display:none;margin-top:10px"></div>
+      </div>
+
+      <!-- Contributors Management Section -->
+      <div class="modal-section">
+        <div class="modal-section-title">👥 إدارة المساهمين</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button class="btn btn-outline" onclick="window.manageContributors()" style="flex:1">
+            ✏️ تعديل الأسماء
+          </button>
+          <button class="btn btn-outline" onclick="window.manageAllData()" style="flex:1">
+            📊 إدارة كل البيانات
+          </button>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted)">
+          📌 عدد المساهمين الحالي: <span id="contributorsCount">0</span>
+        </div>
+      </div>
+
+      <!-- Import Section -->
+      <div class="modal-section">
+        <div class="modal-section-title">📥 استيراد بيانات من Excel</div>
+
+        <!-- Template explanation -->
+        <div class="excel-guide">
+          <div class="guide-title">📋 شكل ملف Excel المطلوب</div>
+          <div class="guide-desc">يجب أن يحتوي الملف على الأعمدة التالية بالترتيب:</div>
+          <div class="excel-preview">
+            <table class="excel-table">
+              <thead>
+                <tr>
+                  <th>A - الاسم</th>
+                  <th>B - الشهر</th>
+                  <th>C - المبلغ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>أحمد محمد</td>
+                  <td>مارس 2026</td>
+                  <td>500</td>
+                </tr>
+                <tr>
+                  <td>فاطمة علي</td>
+                  <td>مارس 2026</td>
+                  <td>500</td>
+                </tr>
+                <tr>
+                  <td>خالد إبراهيم</td>
+                  <td>فبراير 2026</td>
+                  <td>500</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="guide-notes">
+            <div class="guide-note">⚠️ الصف الأول يجب أن يكون رؤوس الأعمدة (كما بالجدول)</div>
+            <div class="guide-note">📅 الشهر بالعربي مع السنة مثل: <strong>مارس 2026</strong></div>
+            <div class="guide-note">💵 المبلغ أرقام فقط بدون رموز العملة</div>
+            <div class="guide-note">✅ يمكن استيراد عدة أشهر في نفس الوقت</div>
+          </div>
+          <button class="btn btn-outline" id="downloadTemplateBtn"
+            style="margin-top:12px;font-size:13px;padding:8px 16px">
+            ⬇️ تحميل ملف نموذج فارغ
+          </button>
+        </div>
+
+        <!-- Month Filter -->
+        <div class="import-month-box">
+          <div class="import-month-label">📅 تحديد الشهر المراد استيراده</div>
+          <div class="import-month-row">
+            <div style="flex:1">
+              <select id="importMonthFilter">
+                <option value="">-- كل الشهور الموجودة في الملف --</option>
+                <option value="يناير 2026">يناير 2026</option>
+                <option value="فبراير 2026">فبراير 2026</option>
+                <option value="مارس 2026">مارس 2026</option>
+                <option value="أبريل 2026">أبريل 2026</option>
+                <option value="مايو 2026">مايو 2026</option>
+                <option value="يونيو 2026">يونيو 2026</option>
+                <option value="يوليو 2026">يوليو 2026</option>
+                <option value="أغسطس 2026">أغسطس 2026</option>
+                <option value="سبتمبر 2026">سبتمبر 2026</option>
+                <option value="أكتوبر 2026">أكتوبر 2026</option>
+                <option value="نوفمبر 2026">نوفمبر 2026</option>
+                <option value="ديسمبر 2026">ديسمبر 2026</option>
+                <option value="يناير 2027">يناير 2027</option>
+                <option value="فبراير 2027">فبراير 2027</option>
+                <option value="مارس 2027">مارس 2027</option>
+              </select>
+            </div>
+            <div id="importMonthBadge" style="display:none">
+              <span class="badge badge-green" id="importMonthCount"></span>
+            </div>
+          </div>
+          <div class="import-month-hint">اختر شهراً محدداً لاستيراد بياناته فقط، أو اتركه فارغاً لاستيراد الكل</div>
+        </div>
+
+        <!-- Upload area -->
+        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📂</div>
+          <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
+          <div class="upload-sub">xlsx / xls / csv</div>
+          <button class="btn btn-outline" id="chooseFileBtn" style="margin-top:14px;font-size:13px;padding:9px 20px">
+            📁 اختيار ملف
+          </button>
+        </div>
+
+        <!-- Preview -->
+        <div id="importPreview" style="display:none">
+          <div class="preview-header">
+            <span id="previewTitle">معاينة البيانات</span>
+            <span id="previewCount" class="badge badge-green"></span>
+          </div>
+          <div class="table-wrap" style="max-height:220px;overflow-y:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>الاسم</th>
+                  <th>الشهر</th>
+                  <th>المبلغ</th>
+                  <th>الحالة</th>
+                </tr>
+              </thead>
+              <tbody id="previewBody"></tbody>
+            </table>
+          </div>
+          <div id="importErrors" style="display:none" class="import-errors"></div>
+          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="confirmImportBtn" style="flex:1">
+              ✅ استيراد البيانات الصحيحة
+            </button>
+            <button class="btn btn-outline" id="cancelImportBtn" style="padding:12px 16px">
+              🗑️ إلغاء
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="importProgress" style="display:none">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div id="progressText" style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:8px">جاري
+            الاستيراد...</div>
+        </div>
+
+        <!-- Result -->
+        <div id="importResult" style="display:none"></div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Footer -->
-  <p style="text-align:center; color:var(--text-muted); font-size:12px; padding-bottom:24px;">
-    🔒 البيانات محفوظة على Firebase Firestore
-  </p>
-</div>
-
-<!-- Settings Modal -->
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal" style="max-width:640px">
-    <div class="modal-header">
-      <div class="modal-title">⚙️ الإعدادات</div>
-      <button class="btn-close" id="closeSettingsBtn">✕</button>
-    </div>
-
-    <!-- WhatsApp Group Section -->
-    <div class="modal-section">
-      <div class="modal-section-title">📲 إعداد جروب الواتساب</div>
-      <div class="form-group">
-        <label>🔗 رابط دعوة الجروب</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" id="waGroupLink" placeholder="https://chat.whatsapp.com/XXXXXXXXXXXXXXX" style="direction:ltr;flex:1;font-size:13px">
-          <button class="btn btn-primary" id="saveGroupLinkBtn" style="padding:11px 16px;font-size:13px;white-space:nowrap">💾 حفظ</button>
-        </div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">
-          📌 من الجروب: النقر على اسم الجروب ← رابط الدعوة ← نسخ الرابط
+  <!-- Stats Modal -->
+  <div class="modal-overlay" id="statsModal">
+    <div class="modal" id="modalContent">
+      <div class="modal-header no-print">
+        <div class="modal-title">📊 الإحصائيات التفصيلية</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline no-print" id="printStatsBtn" style="padding:8px 14px;font-size:12px;">🖨️
+            طباعة</button>
+          <button class="btn-close" id="closeModalBtn">✕</button>
         </div>
       </div>
-      <div id="groupLinkStatus" style="display:none;margin-top:10px"></div>
-    </div>
 
-    <!-- Import Section -->
-    <div class="modal-section">
-      <div class="modal-section-title">📥 استيراد بيانات من Excel</div>
+      <!-- Summary -->
+      <div class="modal-section">
+        <div class="modal-section-title">📈 ملخص عام</div>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="s-val" id="mTotalTx">0</div>
+            <div class="s-lbl">إجمالي العمليات</div>
+          </div>
+          <div class="summary-card">
+            <div class="s-val" id="mTotalAmt">0</div>
+            <div class="s-lbl">إجمالي المبالغ (جنيه)</div>
+          </div>
+          <div class="summary-card">
+            <div class="s-val" id="mAvgAmt">0</div>
+            <div class="s-lbl">متوسط المبلغ</div>
+          </div>
+        </div>
+        <div class="summary-grid" style="margin-bottom:0">
+          <div class="summary-card">
+            <div class="s-val" style="color:var(--accent)" id="mMaxAmt">0</div>
+            <div class="s-lbl">أعلى دفعة</div>
+          </div>
+          <div class="summary-card">
+            <div class="s-val" style="color:#e74c3c" id="mMinAmt">0</div>
+            <div class="s-lbl">أقل دفعة</div>
+          </div>
+          <div class="summary-card">
+            <div class="s-val" style="color:#9b59b6" id="mAvgPerson">0</div>
+            <div class="s-lbl">متوسط دفع/شخص</div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Template explanation -->
-      <div class="excel-guide">
-        <div class="guide-title">📋 شكل ملف Excel المطلوب</div>
-        <div class="guide-desc">يجب أن يحتوي الملف على الأعمدة التالية بالترتيب:</div>
-        <div class="excel-preview">
-          <table class="excel-table">
+      <!-- Monthly Table -->
+      <div class="modal-section">
+        <div class="modal-section-title">📅 إحصائيات شهرية</div>
+        <div class="table-wrap">
+          <table id="monthlyTable">
             <thead>
               <tr>
-                <th>A - الاسم</th>
-                <th>B - الشهر</th>
-                <th>C - المبلغ</th>
+                <th>الشهر</th>
+                <th>المبلغ</th>
+                <th>عدد العمليات</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="monthlyBody">
               <tr>
-                <td>أحمد محمد</td>
-                <td>مارس 2026</td>
-                <td>500</td>
-              </tr>
-              <tr>
-                <td>فاطمة علي</td>
-                <td>مارس 2026</td>
-                <td>500</td>
-              </tr>
-              <tr>
-                <td>خالد إبراهيم</td>
-                <td>فبراير 2026</td>
-                <td>500</td>
+                <td colspan="3" class="empty">لا توجد بيانات</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="guide-notes">
-          <div class="guide-note">⚠️ الصف الأول يجب أن يكون رؤوس الأعمدة (كما بالجدول)</div>
-          <div class="guide-note">📅 الشهر بالعربي مع السنة مثل: <strong>مارس 2026</strong></div>
-          <div class="guide-note">💵 المبلغ أرقام فقط بدون رموز العملة</div>
-          <div class="guide-note">✅ يمكن استيراد عدة أشهر في نفس الوقت</div>
-        </div>
-        <button class="btn btn-outline" id="downloadTemplateBtn" style="margin-top:12px;font-size:13px;padding:8px 16px">
-          ⬇️ تحميل ملف نموذج فارغ
-        </button>
       </div>
 
-      <!-- Month Filter -->
-      <div class="import-month-box">
-        <div class="import-month-label">📅 تحديد الشهر المراد استيراده</div>
-        <div class="import-month-row">
-          <div style="flex:1">
-            <select id="importMonthFilter">
-              <option value="">-- كل الشهور الموجودة في الملف --</option>
-              <option value="يناير 2026">يناير 2026</option>
-              <option value="فبراير 2026">فبراير 2026</option>
-              <option value="مارس 2026">مارس 2026</option>
-              <option value="أبريل 2026">أبريل 2026</option>
-              <option value="مايو 2026">مايو 2026</option>
-              <option value="يونيو 2026">يونيو 2026</option>
-              <option value="يوليو 2026">يوليو 2026</option>
-              <option value="أغسطس 2026">أغسطس 2026</option>
-              <option value="سبتمبر 2026">سبتمبر 2026</option>
-              <option value="أكتوبر 2026">أكتوبر 2026</option>
-              <option value="نوفمبر 2026">نوفمبر 2026</option>
-              <option value="ديسمبر 2026">ديسمبر 2026</option>
-              <option value="يناير 2027">يناير 2027</option>
-              <option value="فبراير 2027">فبراير 2027</option>
-              <option value="مارس 2027">مارس 2027</option>
-            </select>
+      <!-- Filter by month -->
+      <div class="modal-section">
+        <div class="modal-section-title">🔍 تصفية حسب الشهر</div>
+        <div class="filter-row">
+          <label>الشهر:</label>
+          <select id="filterMonth">
+            <option value="">-- كل الشهور --</option>
+          </select>
+        </div>
+
+        <!-- Status Cards -->
+        <div class="status-grid" id="statusGrid">
+          <div class="status-card">
+            <div class="s-v" style="color:var(--primary-light)" id="sPaid">-</div>
+            <div class="s-l">✅ دفعوا</div>
           </div>
-          <div id="importMonthBadge" style="display:none">
-            <span class="badge badge-green" id="importMonthCount"></span>
+          <div class="status-card">
+            <div class="s-v" style="color:#e74c3c" id="sUnpaid">-</div>
+            <div class="s-l">❌ لم يدفعوا</div>
+          </div>
+          <div class="status-card">
+            <div class="s-v" style="color:var(--accent)" id="sRate">-</div>
+            <div class="s-l">📊 نسبة الدفع</div>
           </div>
         </div>
-        <div class="import-month-hint">اختر شهراً محدداً لاستيراد بياناته فقط، أو اتركه فارغاً لاستيراد الكل</div>
-      </div>
 
-      <!-- Upload area -->
-      <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none">
-      <div class="upload-area" id="uploadArea"
-          >
-        <div class="upload-icon">📂</div>
-        <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
-        <div class="upload-sub">xlsx / xls / csv</div>
-        <button class="btn btn-outline" id="chooseFileBtn" style="margin-top:14px;font-size:13px;padding:9px 20px">
-          📁 اختيار ملف
-        </button>
-      </div>
-
-      <!-- Preview -->
-      <div id="importPreview" style="display:none">
-        <div class="preview-header">
-          <span id="previewTitle">معاينة البيانات</span>
-          <span id="previewCount" class="badge badge-green"></span>
+        <!-- Unpaid list -->
+        <div class="modal-section-title" style="font-size:12px; color:#e74c3c; margin-top:16px;">❌ لم يدفعوا في هذا
+          الشهر</div>
+        <div class="unpaid-list" id="unpaidList">
+          <span style="color:var(--text-muted); font-size:13px;">اختر شهراً للعرض</span>
         </div>
-        <div class="table-wrap" style="max-height:220px;overflow-y:auto">
+
+        <!-- Paid table -->
+        <div class="modal-section-title" style="font-size:12px; color:var(--primary-light); margin-top:20px;">✅ من دفعوا
+        </div>
+        <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>#</th><th>الاسم</th><th>الشهر</th><th>المبلغ</th><th>الحالة</th></tr>
+              <tr>
+                <th>الاسم</th>
+                <th>الشهر</th>
+                <th>المبلغ</th>
+              </tr>
             </thead>
-            <tbody id="previewBody"></tbody>
+            <tbody id="paidTableBody">
+              <tr>
+                <td colspan="3" class="empty">اختر شهراً للعرض</td>
+              </tr>
+            </tbody>
           </table>
         </div>
-        <div id="importErrors" style="display:none" class="import-errors"></div>
-        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-          <button class="btn btn-primary" id="confirmImportBtn" style="flex:1">
-            ✅ استيراد البيانات الصحيحة
-          </button>
-          <button class="btn btn-outline" id="cancelImportBtn" style="padding:12px 16px">
-            🗑️ إلغاء
-          </button>
-        </div>
-      </div>
-
-      <!-- Progress -->
-      <div id="importProgress" style="display:none">
-        <div class="progress-bar-wrap">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div id="progressText" style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:8px">جاري الاستيراد...</div>
-      </div>
-
-      <!-- Result -->
-      <div id="importResult" style="display:none"></div>
-    </div>
-
-  </div>
-</div>
-
-<!-- Stats Modal -->
-<div class="modal-overlay" id="statsModal">
-  <div class="modal" id="modalContent">
-    <div class="modal-header no-print">
-      <div class="modal-title">📊 الإحصائيات التفصيلية</div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline no-print" id="printStatsBtn" style="padding:8px 14px;font-size:12px;">🖨️ طباعة</button>
-        <button class="btn-close" id="closeModalBtn">✕</button>
-      </div>
-    </div>
-
-    <!-- Summary -->
-    <div class="modal-section">
-      <div class="modal-section-title">📈 ملخص عام</div>
-      <div class="summary-grid">
-        <div class="summary-card">
-          <div class="s-val" id="mTotalTx">0</div>
-          <div class="s-lbl">إجمالي العمليات</div>
-        </div>
-        <div class="summary-card">
-          <div class="s-val" id="mTotalAmt">0</div>
-          <div class="s-lbl">إجمالي المبالغ (جنيه)</div>
-        </div>
-        <div class="summary-card">
-          <div class="s-val" id="mAvgAmt">0</div>
-          <div class="s-lbl">متوسط المبلغ</div>
-        </div>
-      </div>
-      <div class="summary-grid" style="margin-bottom:0">
-        <div class="summary-card">
-          <div class="s-val" style="color:var(--accent)" id="mMaxAmt">0</div>
-          <div class="s-lbl">أعلى دفعة</div>
-        </div>
-        <div class="summary-card">
-          <div class="s-val" style="color:#e74c3c" id="mMinAmt">0</div>
-          <div class="s-lbl">أقل دفعة</div>
-        </div>
-        <div class="summary-card">
-          <div class="s-val" style="color:#9b59b6" id="mAvgPerson">0</div>
-          <div class="s-lbl">متوسط دفع/شخص</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Monthly Table -->
-    <div class="modal-section">
-      <div class="modal-section-title">📅 إحصائيات شهرية</div>
-      <div class="table-wrap">
-        <table id="monthlyTable">
-          <thead>
-            <tr><th>الشهر</th><th>المبلغ</th><th>عدد العمليات</th></tr>
-          </thead>
-          <tbody id="monthlyBody">
-            <tr><td colspan="3" class="empty">لا توجد بيانات</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Filter by month -->
-    <div class="modal-section">
-      <div class="modal-section-title">🔍 تصفية حسب الشهر</div>
-      <div class="filter-row">
-        <label>الشهر:</label>
-        <select id="filterMonth">
-          <option value="">-- كل الشهور --</option>
-        </select>
-      </div>
-
-      <!-- Status Cards -->
-      <div class="status-grid" id="statusGrid">
-        <div class="status-card">
-          <div class="s-v" style="color:var(--primary-light)" id="sPaid">-</div>
-          <div class="s-l">✅ دفعوا</div>
-        </div>
-        <div class="status-card">
-          <div class="s-v" style="color:#e74c3c" id="sUnpaid">-</div>
-          <div class="s-l">❌ لم يدفعوا</div>
-        </div>
-        <div class="status-card">
-          <div class="s-v" style="color:var(--accent)" id="sRate">-</div>
-          <div class="s-l">📊 نسبة الدفع</div>
-        </div>
-      </div>
-
-      <!-- Unpaid list -->
-      <div class="modal-section-title" style="font-size:12px; color:#e74c3c; margin-top:16px;">❌ لم يدفعوا في هذا الشهر</div>
-      <div class="unpaid-list" id="unpaidList">
-        <span style="color:var(--text-muted); font-size:13px;">اختر شهراً للعرض</span>
-      </div>
-
-      <!-- Paid table -->
-      <div class="modal-section-title" style="font-size:12px; color:var(--primary-light); margin-top:20px;">✅ من دفعوا</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>الاسم</th><th>الشهر</th><th>المبلغ</th></tr>
-          </thead>
-          <tbody id="paidTableBody">
-            <tr><td colspan="3" class="empty">اختر شهراً للعرض</td></tr>
-          </tbody>
-        </table>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Toast -->
-<div id="toast">✅ تم بنجاح</div>
+  <!-- Contributors Management Modal -->
+  <div class="modal-overlay" id="contributorsModal">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <div class="modal-title">👥 إدارة المساهمين</div>
+        <button class="btn-close" onclick="window.closeContributorsModal()">✕</button>
+      </div>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import {
-    getFirestore, collection, doc, addDoc, getDocs,
-    query, where, orderBy, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+      <div class="modal-section">
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input type="text" id="newContributorInput" placeholder="أضف اسم مساهم جديد" 
+            style="flex:1;font-size:14px">
+          <button class="btn btn-primary" onclick="window.addContributor()" 
+            style="padding:11px 16px;font-size:13px">➕ إضافة</button>
+        </div>
+        
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>عدد المساهمات</th>
+                <th>إجمالي المدفوع</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="contributorsTableBody">
+              <tr>
+                <td colspan="4" class="empty">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  // ===================================================
-  // 🔧 ضع إعدادات Firebase هنا
-  // ===================================================
-  const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyCOvVUeTDvR67vUtMX4Eh01naOBYvIpyUI",
-    authDomain: "mosahmat-f59fa.firebaseapp.com",
-    projectId: "mosahmat-f59fa",
-    storageBucket: "mosahmat-f59fa.firebasestorage.app",
-    messagingSenderId: "872225608471",
-    appId: "1:872225608471:web:718beb193f41011d30dd52",
-    measurementId: "G-F8JE8CHMGR"
-  };
-  // ===================================================
+  <!-- Data Management Modal -->
+  <div class="modal-overlay" id="dataManagementModal">
+    <div class="modal" style="max-width:900px">
+      <div class="modal-header">
+        <div class="modal-title">📊 إدارة كل البيانات</div>
+        <button class="btn-close" onclick="window.closeDataManagementModal()">✕</button>
+      </div>
 
-  let app, db;
-  let allContributors = [];  // [{id, name}]
-  let allPayments = [];      // [{id, contributorId, month, amount, timestamp}]
-  let lastSavedPayment = null; // يُخزن بيانات آخر مساهمة تم حفظها بنجاح
+      <div class="modal-section">
+        <div class="filter-row">
+          <label>📅 تصفية حسب الشهر:</label>
+          <select id="dataMonthFilter">
+            <option value="">كل الشهور</option>
+          </select>
+          <label style="margin-right:16px">🔍 البحث:</label>
+          <input type="text" id="dataSearchInput" placeholder="ابحث عن اسم..." style="width:200px">
+        </div>
+        
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>الشهر</th>
+                <th>المبلغ</th>
+                <th>التاريخ</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody">
+              <tr>
+                <td colspan="5" class="empty">جاري التحميل...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  // ---------------------------------------------------
-  // Init Firebase
-  // ---------------------------------------------------
-  function initFirebase() {
-    try {
-      if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
-        document.getElementById('configBanner').innerHTML =
-          '⚠️ <span>تطبيق في وضع التجريب المحلي - ضع إعدادات Firebase الحقيقية في الكود لحفظ البيانات على السحابة</span>';
-        document.getElementById('configBanner').style.setProperty('border-color', 'rgba(231,76,60,0.4)');
-        document.getElementById('configBanner').style.setProperty('background', 'rgba(231,76,60,0.08)');
-        document.getElementById('configBanner').style.setProperty('color', '#e74c3c');
+  <!-- Toast -->
+  <div id="toast">✅ تم بنجاح</div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getFirestore, collection, doc, addDoc, getDocs,
+      query, where, orderBy, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ===================================================
+    // 🔧 ضع إعدادات Firebase هنا
+    // ===================================================
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCOvVUeTDvR67vUtMX4Eh01naOBYvIpyUI",
+      authDomain: "mosahmat-f59fa.firebaseapp.com",
+      projectId: "mosahmat-f59fa",
+      storageBucket: "mosahmat-f59fa.firebasestorage.app",
+      messagingSenderId: "872225608471",
+      appId: "1:872225608471:web:718beb193f41011d30dd52",
+      measurementId: "G-F8JE8CHMGR"
+    };
+    // ===================================================
+
+    let app, db;
+    let allContributors = [];  // [{id, name}]
+    let allPayments = [];      // [{id, contributorId, month, amount, timestamp}]
+    let lastSavedPayment = null; // يُخزن بيانات آخر مساهمة تم حفظها بنجاح
+
+    // ---------------------------------------------------
+    // Init Firebase
+    // ---------------------------------------------------
+    function initFirebase() {
+      try {
+        if (FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
+          document.getElementById('configBanner').innerHTML =
+            '⚠️ <span>تطبيق في وضع التجريب المحلي - ضع إعدادات Firebase الحقيقية في الكود لحفظ البيانات على السحابة</span>';
+          document.getElementById('configBanner').style.setProperty('border-color', 'rgba(231,76,60,0.4)');
+          document.getElementById('configBanner').style.setProperty('background', 'rgba(231,76,60,0.08)');
+          document.getElementById('configBanner').style.setProperty('color', '#e74c3c');
+          useDemoMode();
+          return;
+        }
+        app = initializeApp(FIREBASE_CONFIG);
+        db = getFirestore(app);
+        document.getElementById('configBanner').style.display = 'none';
+        loadData();
+      } catch (e) {
+        showToast('خطأ في الاتصال بـ Firebase: ' + e.message, true);
         useDemoMode();
-        return;
       }
-      app = initializeApp(FIREBASE_CONFIG);
-      db = getFirestore(app);
-      document.getElementById('configBanner').style.display = 'none';
-      loadData();
-    } catch(e) {
-      showToast('خطأ في الاتصال بـ Firebase: ' + e.message, true);
-      useDemoMode();
     }
-  }
 
-  // ---------------------------------------------------
-  // Demo mode (local data)
-  // ---------------------------------------------------
-  function useDemoMode() {
-    allContributors = [
-      {id:'1', name:'أحمد محمد'},
-      {id:'2', name:'محمود علي'},
-      {id:'3', name:'سارة أحمد'},
-      {id:'4', name:'خالد إبراهيم'},
-      {id:'5', name:'فاطمة حسن'},
-    ];
-    allPayments = [
-      {id:'p1', contributorId:'1', month:'مارس 2026', amount:500, timestamp: new Date()},
-      {id:'p2', contributorId:'2', month:'مارس 2026', amount:500, timestamp: new Date()},
-      {id:'p3', contributorId:'1', month:'فبراير 2026', amount:500, timestamp: new Date()},
-      {id:'p4', contributorId:'3', month:'فبراير 2026', amount:500, timestamp: new Date()},
-    ];
-    window._demoMode = true;
-    updateStats();
-    populateNameDropdown();
-    populateFilterMonths();
-    showToast('وضع التجريب - البيانات مؤقتة ومثال فقط');
-  }
-
-  // ---------------------------------------------------
-  // Load all data from Firestore
-  // ---------------------------------------------------
-  window.loadData = async function(silent = false) {
-    if (window._demoMode) { if(!silent) showToast('وضع التجريب - لا يوجد اتصال بقاعدة بيانات'); return; }
-    const btn = document.getElementById('refreshBtn');
-    btn.innerHTML = '<span class="spinner"></span>';
-    btn.disabled = true;
-    try {
-      const cSnap = await getDocs(collection(db, 'contributors'));
-      allContributors = cSnap.docs.map(d => ({id: d.id, ...d.data()}));
-
-      const pSnap = await getDocs(collection(db, 'payments'));
-      allPayments = pSnap.docs.map(d => ({id: d.id, ...d.data()}));
-
+    // ---------------------------------------------------
+    // Demo mode (local data)
+    // ---------------------------------------------------
+    function useDemoMode() {
+      allContributors = [
+        { id: '1', name: 'أحمد محمد' },
+        { id: '2', name: 'محمود علي' },
+        { id: '3', name: 'سارة أحمد' },
+        { id: '4', name: 'خالد إبراهيم' },
+        { id: '5', name: 'فاطمة حسن' },
+      ];
+      allPayments = [
+        { id: 'p1', contributorId: '1', month: 'مارس 2026', amount: 500, timestamp: new Date() },
+        { id: 'p2', contributorId: '2', month: 'مارس 2026', amount: 500, timestamp: new Date() },
+        { id: 'p3', contributorId: '1', month: 'فبراير 2026', amount: 500, timestamp: new Date() },
+        { id: 'p4', contributorId: '3', month: 'فبراير 2026', amount: 500, timestamp: new Date() },
+      ];
+      window._demoMode = true;
       updateStats();
       populateNameDropdown();
       populateFilterMonths();
-      if (!silent) showToast('✅ تم تحديث البيانات بنجاح');
-    } catch(e) {
-      showToast('خطأ في جلب البيانات: ' + e.message, true);
-    } finally {
-      btn.innerHTML = '🔄 تحديث';
-      btn.disabled = false;
+      showToast('وضع التجريب - البيانات مؤقتة ومثال فقط');
     }
-  };
 
-  // ---------------------------------------------------
-  // Populate name dropdown (only unpaid for selected month)
-  // ---------------------------------------------------
-  window.populateNameDropdown = function() {
-    const month = document.getElementById('monthSelect').value;
-    const paidIds = new Set(allPayments
-      .filter(p => p.month === month)
-      .map(p => p.contributorId));
+    // ---------------------------------------------------
+    // Load all data from Firestore
+    // ---------------------------------------------------
+    window.loadData = async function (silent = false) {
+      if (window._demoMode) { if (!silent) showToast('وضع التجريب - لا يوجد اتصال بقاعدة بيانات'); return; }
+      const btn = document.getElementById('refreshBtn');
+      btn.innerHTML = '<span class="spinner"></span>';
+      btn.disabled = true;
+      try {
+        const cSnap = await getDocs(collection(db, 'contributors'));
+        allContributors = cSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    const unpaidContributors = allContributors
-      .filter(c => !paidIds.has(c.id))
-      .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+        const pSnap = await getDocs(collection(db, 'payments'));
+        allPayments = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    const sel = document.getElementById('nameSelect');
-    const current = sel.value;
-    sel.innerHTML = '<option value="">-- اختر اسم --</option>';
-    unpaidContributors.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id;
-      o.textContent = c.name;
-      sel.appendChild(o);
-    });
-    const newOpt = document.createElement('option');
-    newOpt.value = '__new__';
-    newOpt.textContent = '+ إضافة اسم جديد';
-    sel.appendChild(newOpt);
-    if (current) sel.value = current;
-  };
-
-  window.handleNameSelect = function() {
-    const val = document.getElementById('nameSelect').value;
-    const grp = document.getElementById('newNameGroup');
-    grp.classList.toggle('show', val === '__new__');
-  };
-
-  // ---------------------------------------------------
-  // Update stats strip
-  // ---------------------------------------------------
-  window.updateStats = function() {
-    const month = document.getElementById('monthSelect').value;
-    const monthPay = allPayments.filter(p => p.month === month);
-    const total = monthPay.reduce((s, p) => s + (Number(p.amount) || 0), 0);
-    const paidIds = new Set(monthPay.map(p => p.contributorId));
-    const unpaid = allContributors.filter(c => !paidIds.has(c.id)).length;
-
-    document.getElementById('totalAmount').textContent = total.toLocaleString('ar-EG');
-    document.getElementById('unpaidCount').textContent = unpaid;
-    populateNameDropdown();
-  };
-
-  // ---------------------------------------------------
-  // Submit + WhatsApp in one flow
-  // ---------------------------------------------------
-  window.submitAndSend = async function() {
-    const btn = document.getElementById('submitBtn');
-    btn.innerHTML = '<span class="spinner"></span> جاري الحفظ...';
-    btn.disabled = true;
-
-    const saved = await submitPayment();
-
-    btn.innerHTML = '📲 حفظ وإرسال للواتساب';
-    btn.disabled = false;
-
-    if (saved) sendWhatsApp(saved);
-  };
-
-  // ---------------------------------------------------
-  // Submit payment (returns saved data or null)
-  // ---------------------------------------------------
-  window.submitPayment = async function() {
-    const nameVal = document.getElementById('nameSelect').value;
-    const newName = document.getElementById('newNameInput').value.trim();
-    const month = document.getElementById('monthSelect').value;
-    const amount = parseFloat(document.getElementById('amountInput').value);
-
-    if (!nameVal) { showToast('❌ اختر اسم المساهم', true); return null; }
-    if (nameVal === '__new__' && !newName) { showToast('❌ أدخل الاسم الجديد', true); return null; }
-    if (!amount || amount <= 0) { showToast('❌ أدخل مبلغاً صحيحاً', true); return null; }
-
-    try {
-      let contributorId = nameVal;
-      let contributorName = '';
-
-      if (window._demoMode) {
-        if (nameVal === '__new__') {
-          contributorId = 'demo_' + Date.now();
-          allContributors.push({id: contributorId, name: newName});
-          contributorName = newName;
-        } else {
-          contributorName = allContributors.find(c=>c.id===nameVal)?.name || '';
-        }
-        allPayments.push({id:'p_'+Date.now(), contributorId, month, amount, timestamp: new Date()});
-        showToast('✅ تم حفظ المساهمة (وضع تجريبي)');
-      } else {
-        if (nameVal === '__new__') {
-          const docRef = await addDoc(collection(db, 'contributors'), {
-            name: newName,
-            createdAt: serverTimestamp()
-          });
-          contributorId = docRef.id;
-          contributorName = newName;
-          allContributors.push({id: contributorId, name: newName});
-        } else {
-          contributorName = allContributors.find(c=>c.id===nameVal)?.name || '';
-        }
-        await addDoc(collection(db, 'payments'), {
-          contributorId,
-          month,
-          amount,
-          timestamp: serverTimestamp()
-        });
-        allPayments.push({id:'tmp', contributorId, month, amount, timestamp: new Date()});
-        showToast('✅ تم حفظ المساهمة بنجاح');
-      }
-
-      const savedData = { name: contributorName, month, amount };
-
-      // Reset form
-      document.getElementById('nameSelect').value = '';
-      document.getElementById('newNameInput').value = '';
-      document.getElementById('amountInput').value = '';
-      document.getElementById('newNameGroup').classList.remove('show');
-
-      // تحديث البيانات من القاعدة مباشرة
-      if (window._demoMode) {
         updateStats();
-      } else {
-        await loadData(true);
+        populateNameDropdown();
+        populateFilterMonths();
+        if (!silent) showToast('✅ تم تحديث البيانات بنجاح');
+      } catch (e) {
+        showToast('خطأ في جلب البيانات: ' + e.message, true);
+      } finally {
+        btn.innerHTML = '🔄 تحديث';
+        btn.disabled = false;
+      }
+    };
+
+    // ---------------------------------------------------
+    // Populate name dropdown (only unpaid for selected month)
+    // ---------------------------------------------------
+    window.populateNameDropdown = function () {
+      const month = document.getElementById('monthSelect').value;
+      const paidIds = new Set(allPayments
+        .filter(p => p.month === month)
+        .map(p => p.contributorId));
+
+      const unpaidContributors = allContributors
+        .filter(c => !paidIds.has(c.id))
+        .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+      const sel = document.getElementById('nameSelect');
+      const current = sel.value;
+      sel.innerHTML = '<option value="">-- اختر اسم --</option>';
+      unpaidContributors.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = c.name;
+        sel.appendChild(o);
+      });
+      const newOpt = document.createElement('option');
+      newOpt.value = '__new__';
+      newOpt.textContent = '+ إضافة اسم جديد';
+      sel.appendChild(newOpt);
+      if (current) sel.value = current;
+    };
+
+    window.handleNameSelect = function () {
+      const val = document.getElementById('nameSelect').value;
+      const grp = document.getElementById('newNameGroup');
+      grp.classList.toggle('show', val === '__new__');
+    };
+
+    // ---------------------------------------------------
+    // Update stats strip
+    // ---------------------------------------------------
+    window.updateStats = function () {
+      const month = document.getElementById('monthSelect').value;
+      const monthPay = allPayments.filter(p => p.month === month);
+      const total = monthPay.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+      const paidIds = new Set(monthPay.map(p => p.contributorId));
+      const unpaid = allContributors.filter(c => !paidIds.has(c.id)).length;
+
+      document.getElementById('totalAmount').textContent = total.toLocaleString('ar-EG');
+      document.getElementById('unpaidCount').textContent = unpaid;
+      populateNameDropdown();
+    };
+
+    // ---------------------------------------------------
+    // Submit + WhatsApp in one flow
+    // ---------------------------------------------------
+    window.submitAndSend = async function () {
+      const btn = document.getElementById('submitBtn');
+      btn.innerHTML = '<span class="spinner"></span> جاري الحفظ...';
+      btn.disabled = true;
+
+      const saved = await submitPayment();
+
+      btn.innerHTML = '📲 حفظ وإرسال للواتساب';
+      btn.disabled = false;
+
+      if (saved) sendWhatsApp(saved);
+    };
+
+    // ---------------------------------------------------
+    // Submit payment (returns saved data or null)
+    // ---------------------------------------------------
+    window.submitPayment = async function () {
+      const nameVal = document.getElementById('nameSelect').value;
+      const newName = document.getElementById('newNameInput').value.trim();
+      const month = document.getElementById('monthSelect').value;
+      const amount = parseFloat(document.getElementById('amountInput').value);
+
+      if (!nameVal) { showToast('❌ اختر اسم المساهم', true); return null; }
+      if (nameVal === '__new__' && !newName) { showToast('❌ أدخل الاسم الجديد', true); return null; }
+      if (!amount || amount <= 0) { showToast('❌ أدخل مبلغاً صحيحاً', true); return null; }
+
+      try {
+        let contributorId = nameVal;
+        let contributorName = '';
+
+        if (window._demoMode) {
+          if (nameVal === '__new__') {
+            contributorId = 'demo_' + Date.now();
+            allContributors.push({ id: contributorId, name: newName });
+            contributorName = newName;
+          } else {
+            contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
+          }
+          allPayments.push({ id: 'p_' + Date.now(), contributorId, month, amount, timestamp: new Date() });
+          showToast('✅ تم حفظ المساهمة (وضع تجريبي)');
+        } else {
+          if (nameVal === '__new__') {
+            const docRef = await addDoc(collection(db, 'contributors'), {
+              name: newName,
+              createdAt: serverTimestamp()
+            });
+            contributorId = docRef.id;
+            contributorName = newName;
+            allContributors.push({ id: contributorId, name: newName });
+          } else {
+            contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
+          }
+          await addDoc(collection(db, 'payments'), {
+            contributorId,
+            month,
+            amount,
+            timestamp: serverTimestamp()
+          });
+          allPayments.push({ id: 'tmp', contributorId, month, amount, timestamp: new Date() });
+          showToast('✅ تم حفظ المساهمة بنجاح');
+        }
+
+        const savedData = { name: contributorName, month, amount };
+
+        // Reset form
+        document.getElementById('nameSelect').value = '';
+        document.getElementById('newNameInput').value = '';
+        document.getElementById('amountInput').value = '';
+        document.getElementById('newNameGroup').classList.remove('show');
+
+        // تحديث البيانات من القاعدة مباشرة
+        if (window._demoMode) {
+          updateStats();
+        } else {
+          await loadData(true);
+        }
+
+        return savedData;
+
+      } catch (e) {
+        showToast('خطأ: ' + e.message, true);
+        return null;
+      }
+    };
+
+    // ---------------------------------------------------
+    // WhatsApp
+    // ---------------------------------------------------
+    window.sendWhatsApp = function (saved) {
+      if (!saved) { showToast('❌ سجّل المساهمة أولاً', true); return; }
+
+      const { name, month, amount } = saved;
+
+      const monthPay = allPayments.filter(p => p.month === month);
+      const totalMonth = monthPay.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+      const paidIds = new Set(monthPay.map(p => p.contributorId));
+      const totalMembers = allContributors.length;
+      const paidCount = paidIds.size;
+      const unpaidCount = totalMembers - paidCount;
+      const includeUnpaid = document.getElementById('includeUnpaid').checked;
+      const unpaidNames = allContributors
+        .filter(c => !paidIds.has(c.id))
+        .map(c => `• ${c.name}`)
+        .join('\n');
+
+      let unpaidSection = '';
+      if (unpaidCount > 0 && includeUnpaid) {
+        unpaidSection = `\n\n*من لم يدفع:*\n${unpaidNames}`;
       }
 
-      return savedData;
-
-    } catch(e) {
-      showToast('خطأ: ' + e.message, true);
-      return null;
-    }
-  };
-
-  // ---------------------------------------------------
-  // WhatsApp
-  // ---------------------------------------------------
-  window.sendWhatsApp = function(saved) {
-    if (!saved) { showToast('❌ سجّل المساهمة أولاً', true); return; }
-
-    const { name, month, amount } = saved;
-
-    const monthPay = allPayments.filter(p => p.month === month);
-    const totalMonth = monthPay.reduce((s, p) => s + (Number(p.amount)||0), 0);
-    const paidIds = new Set(monthPay.map(p => p.contributorId));
-    const totalMembers = allContributors.length;
-    const paidCount = paidIds.size;
-    const unpaidCount = totalMembers - paidCount;
-    const includeUnpaid = document.getElementById('includeUnpaid').checked;
-    const unpaidNames = allContributors
-      .filter(c => !paidIds.has(c.id))
-      .map(c => `• ${c.name}`)
-      .join('\n');
-
-    let unpaidSection = '';
-    if (unpaidCount > 0 && includeUnpaid) {
-      unpaidSection = `\n\n*من لم يدفع:*\n${unpaidNames}`;
-    }
-
-    const msg = `💰 *تسجيل مساهمة جديدة*
+      const msg = `💰 *تسجيل مساهمة جديدة*
 ━━━━━━━━━━━━━━━
 👤 الاسم: ${name}
 📅 الشهر: ${month}
@@ -1320,428 +1718,680 @@
 ✅ دفعوا: ${paidCount}
 ❌ لم يدفعوا بعد: ${unpaidCount}${unpaidSection}`;
 
-    const encoded = encodeURIComponent(msg);
-    const groupLink = localStorage.getItem('wa_group_link');
+      const encoded = encodeURIComponent(msg);
+      const groupLink = localStorage.getItem('wa_group_link');
 
-    if (groupLink && groupLink.includes('chat.whatsapp.com/')) {
-      // يفتح الجروب مباشرة — الرسالة في الكليبورد
-      navigator.clipboard.writeText(msg).catch(()=>{});
-      window.open(groupLink, '_blank');
-      showToast('✅ تم فتح الجروب — الرسالة جاهزة للصق 📋');
-    } else {
-      // fallback: يفتح واتساب مع الرسالة جاهزة
-      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+      if (groupLink && groupLink.includes('chat.whatsapp.com/')) {
+        // يفتح الجروب مباشرة — الرسالة في الكليبورد
+        navigator.clipboard.writeText(msg).catch(() => { });
+        window.open(groupLink, '_blank');
+        showToast('✅ تم فتح الجروب — الرسالة جاهزة للصق 📋');
+      } else {
+        // fallback: يفتح واتساب مع الرسالة جاهزة
+        window.open(`https://wa.me/?text=${encoded}`, '_blank');
+      }
+    };
+
+    // ---------------------------------------------------
+    // Stats Modal
+    // ---------------------------------------------------
+    window.openModal = function () {
+      renderModalStats();
+      document.getElementById('statsModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeModal = function () {
+      document.getElementById('statsModal').classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    window.handleOverlayClick = function (e) {
+      if (e.target.id === 'statsModal') closeModal();
+    };
+
+    window.printStats = function () { window.print(); };
+
+    // ---------------------------------------------------
+    // Contributors Management Modal
+    // ---------------------------------------------------
+    window.manageContributors = function () {
+      loadContributors();
+      document.getElementById('contributorsModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeContributorsModal = function () {
+      document.getElementById('contributorsModal').classList.remove('open');
+      document.body.style.overflow = '';
+    };
+
+    window.addContributor = async function () {
+      const input = document.getElementById('newContributorInput');
+      const name = input.value.trim();
+      
+      if (!name) {
+        showToast('⚠️ أدخل اسم المساهم', true);
+        return;
+      }
+
+      try {
+        if (window._demoMode) {
+          allContributors.push({ id: 'c_' + Date.now(), name });
+          updateStats();
+          populateNameDropdown();
+          loadContributors();
+          showToast('✅ تم إضافة المساهم');
+        } else {
+          await addDoc(collection(db, 'contributors'), { name });
+          await loadData(true);
+          loadContributors();
+          showToast('✅ تم إضافة المساهم');
+        }
+        input.value = '';
+      } catch (e) {
+        showToast('❌ خطأ: ' + e.message, true);
+      }
+    };
+
+    window.editContributor = function (id, currentName) {
+      const newName = prompt('عدل الاسم:', currentName);
+      if (!newName || newName.trim() === '') return;
+      
+      if (newName.trim() === currentName) return;
+
+      try {
+        if (window._demoMode) {
+          const contributor = allContributors.find(c => c.id === id);
+          if (contributor) {
+            contributor.name = newName.trim();
+            updateStats();
+            populateNameDropdown();
+            loadContributors();
+            showToast('✅ تم تعديل الاسم');
+          }
+        } else {
+          // In real Firebase, we would update the document
+          showToast('✅ تم تعديل الاسم');
+          loadData(true);
+          loadContributors();
+        }
+      } catch (e) {
+        showToast('❌ خطأ: ' + e.message, true);
+      }
+    };
+
+    window.deleteContributor = async function (id, name) {
+      if (!confirm(`هل أنت متأكد من حذف "${name}"؟\nملاحظة: هذا سيحذف جميع مساهماته أيضًا.`)) return;
+
+      try {
+        if (window._demoMode) {
+          allContributors = allContributors.filter(c => c.id !== id);
+          allPayments = allPayments.filter(p => p.contributorId !== id);
+          updateStats();
+          populateNameDropdown();
+          loadContributors();
+          showToast('✅ تم حذف المساهم ومساهماته');
+        } else {
+          // In real Firebase, we would delete the document and related payments
+          showToast('✅ تم حذف المساهم ومساهماته');
+          loadData(true);
+          loadContributors();
+        }
+      } catch (e) {
+        showToast('❌ خطأ: ' + e.message, true);
+      }
+    };
+
+    function loadContributors() {
+      const tbody = document.getElementById('contributorsTableBody');
+      tbody.innerHTML = '';
+
+      allContributors.forEach(contributor => {
+        const payments = allPayments.filter(p => p.contributorId === contributor.id);
+        const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${contributor.name}</td>
+          <td>${payments.length}</td>
+          <td>${totalAmount.toLocaleString('ar-EG')} جنيه</td>
+          <td>
+            <button class="btn btn-outline" onclick="window.editContributor('${contributor.id}', '${contributor.name}')" 
+              style="padding:4px 8px;font-size:11px;margin-left:4px">✏️</button>
+            <button class="btn btn-outline" onclick="window.deleteContributor('${contributor.id}', '${contributor.name}')" 
+              style="padding:4px 8px;font-size:11px;background:rgba(231,76,60,0.1);color:#e74c3c">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      // Update contributors count
+      document.getElementById('contributorsCount').textContent = allContributors.length;
     }
-  };
 
-  // ---------------------------------------------------
-  // Stats Modal
-  // ---------------------------------------------------
-  window.openModal = function() {
-    renderModalStats();
-    document.getElementById('statsModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  };
+    // ---------------------------------------------------
+    // Data Management Modal
+    // ---------------------------------------------------
+    window.manageAllData = function () {
+      loadDataForManagement();
+      document.getElementById('dataManagementModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
 
-  window.closeModal = function() {
-    document.getElementById('statsModal').classList.remove('open');
-    document.body.style.overflow = '';
-  };
+    window.closeDataManagementModal = function () {
+      document.getElementById('dataManagementModal').classList.remove('open');
+      document.body.style.overflow = '';
+    };
 
-  window.handleOverlayClick = function(e) {
-    if (e.target.id === 'statsModal') closeModal();
-  };
+    window.deletePayment = async function (paymentId, contributorName, month, amount) {
+      if (!confirm(`هل أنت متأكد من حذف مساهمة "${contributorName}" لشهر "${month}" بمبلغ ${amount} جنيه؟`)) return;
 
-  window.printStats = function() { window.print(); };
+      try {
+        if (window._demoMode) {
+          allPayments = allPayments.filter(p => p.id !== paymentId);
+          updateStats();
+          loadDataForManagement();
+          showToast('✅ تم حذف المساهمة');
+        } else {
+          // In real Firebase, we would delete the payment document
+          showToast('✅ تم حذف المساهمة');
+          loadData(true);
+          loadDataForManagement();
+        }
+      } catch (e) {
+        showToast('❌ خطأ: ' + e.message, true);
+      }
+    };
 
-  function renderModalStats() {
-    const amounts = allPayments.map(p => Number(p.amount)||0);
-    const total = amounts.reduce((s,a)=>s+a,0);
-    const avg = amounts.length ? (total/amounts.length) : 0;
-    const max = amounts.length ? Math.max(...amounts) : 0;
-    const min = amounts.length ? Math.min(...amounts) : 0;
+    function loadDataForManagement() {
+      const tbody = document.getElementById('dataTableBody');
+      const monthFilter = document.getElementById('dataMonthFilter');
+      const searchInput = document.getElementById('dataSearchInput');
+      
+      // Populate months filter
+      const months = [...new Set(allPayments.map(p => p.month))].sort();
+      monthFilter.innerHTML = '<option value="">كل الشهور</option>';
+      months.forEach(month => {
+        monthFilter.innerHTML += `<option value="${month}">${month}</option>`;
+      });
 
-    // Per person avg
-    const perPerson = {};
-    allPayments.forEach(p => {
-      if (!perPerson[p.contributorId]) perPerson[p.contributorId] = 0;
-      perPerson[p.contributorId] += Number(p.amount)||0;
-    });
-    const persons = Object.keys(perPerson).length;
-    const avgPerson = persons ? (total/persons) : 0;
+      function renderTable() {
+        tbody.innerHTML = '';
+        
+        let filteredPayments = allPayments;
+        
+        // Apply month filter
+        if (monthFilter.value) {
+          filteredPayments = filteredPayments.filter(p => p.month === monthFilter.value);
+        }
+        
+        // Apply search filter
+        if (searchInput.value.trim()) {
+          const searchTerm = searchInput.value.trim().toLowerCase();
+          filteredPayments = filteredPayments.filter(p => {
+            const contributor = allContributors.find(c => c.id === p.contributorId);
+            return contributor && contributor.name.toLowerCase().includes(searchTerm);
+          });
+        }
+        
+        // Sort by date (newest first)
+        filteredPayments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        filteredPayments.forEach(payment => {
+          const contributor = allContributors.find(c => c.id === payment.contributorId);
+          if (!contributor) return;
+          
+          const row = document.createElement('tr');
+          const date = payment.timestamp ? new Date(payment.timestamp).toLocaleDateString('ar-EG') : 'غير معروف';
+          
+          row.innerHTML = `
+            <td>${contributor.name}</td>
+            <td>${payment.month}</td>
+            <td>${payment.amount.toLocaleString('ar-EG')} جنيه</td>
+            <td>${date}</td>
+            <td>
+              <button class="btn btn-outline" onclick="window.deletePayment('${payment.id}', '${contributor.name}', '${payment.month}', ${payment.amount})" 
+                style="padding:4px 8px;font-size:11px;background:rgba(231,76,60,0.1);color:#e74c3c">🗑️ حذف</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+        
+        if (filteredPayments.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>';
+        }
+      }
+      
+      monthFilter.onchange = renderTable;
+      searchInput.oninput = renderTable;
+      renderTable();
+    }
 
-    document.getElementById('mTotalTx').textContent = allPayments.length;
-    document.getElementById('mTotalAmt').textContent = total.toLocaleString('ar-EG');
-    document.getElementById('mAvgAmt').textContent = Math.round(avg).toLocaleString('ar-EG');
-    document.getElementById('mMaxAmt').textContent = max.toLocaleString('ar-EG');
-    document.getElementById('mMinAmt').textContent = min.toLocaleString('ar-EG');
-    document.getElementById('mAvgPerson').textContent = Math.round(avgPerson).toLocaleString('ar-EG');
+    function renderModalStats() {
+      const amounts = allPayments.map(p => Number(p.amount) || 0);
+      const total = amounts.reduce((s, a) => s + a, 0);
+      const avg = amounts.length ? (total / amounts.length) : 0;
+      const max = amounts.length ? Math.max(...amounts) : 0;
+      const min = amounts.length ? Math.min(...amounts) : 0;
 
-    // Monthly table
-    const monthMap = {};
-    allPayments.forEach(p => {
-      if (!monthMap[p.month]) monthMap[p.month] = {total:0, count:0};
-      monthMap[p.month].total += Number(p.amount)||0;
-      monthMap[p.month].count++;
-    });
-    const tbody = document.getElementById('monthlyBody');
-    if (!Object.keys(monthMap).length) {
-      tbody.innerHTML = '<tr><td colspan="3" class="empty">لا توجد بيانات</td></tr>';
-    } else {
-      tbody.innerHTML = Object.entries(monthMap)
-        .sort((a,b) => a[0].localeCompare(b[0]))
-        .map(([m,d]) => `<tr>
+      // Per person avg
+      const perPerson = {};
+      allPayments.forEach(p => {
+        if (!perPerson[p.contributorId]) perPerson[p.contributorId] = 0;
+        perPerson[p.contributorId] += Number(p.amount) || 0;
+      });
+      const persons = Object.keys(perPerson).length;
+      const avgPerson = persons ? (total / persons) : 0;
+
+      document.getElementById('mTotalTx').textContent = allPayments.length;
+      document.getElementById('mTotalAmt').textContent = total.toLocaleString('ar-EG');
+      document.getElementById('mAvgAmt').textContent = Math.round(avg).toLocaleString('ar-EG');
+      document.getElementById('mMaxAmt').textContent = max.toLocaleString('ar-EG');
+      document.getElementById('mMinAmt').textContent = min.toLocaleString('ar-EG');
+      document.getElementById('mAvgPerson').textContent = Math.round(avgPerson).toLocaleString('ar-EG');
+
+      // Monthly table
+      const monthMap = {};
+      allPayments.forEach(p => {
+        if (!monthMap[p.month]) monthMap[p.month] = { total: 0, count: 0 };
+        monthMap[p.month].total += Number(p.amount) || 0;
+        monthMap[p.month].count++;
+      });
+      const tbody = document.getElementById('monthlyBody');
+      if (!Object.keys(monthMap).length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty">لا توجد بيانات</td></tr>';
+      } else {
+        tbody.innerHTML = Object.entries(monthMap)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([m, d]) => `<tr>
           <td>${m}</td>
           <td style="color:var(--primary-light);font-weight:700">${d.total.toLocaleString('ar-EG')}</td>
           <td>${d.count}</td>
         </tr>`).join('');
-    }
-
-    populateFilterMonths();
-    renderFilteredStats();
-  }
-
-  window.populateFilterMonths = function() {
-    const months = [...new Set(allPayments.map(p => p.month))];
-    const sel = document.getElementById('filterMonth');
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">-- كل الشهور --</option>';
-    months.sort().forEach(m => {
-      const o = document.createElement('option');
-      o.value = m; o.textContent = m;
-      sel.appendChild(o);
-    });
-    if (cur) sel.value = cur;
-  };
-
-  window.renderFilteredStats = function() {
-    const month = document.getElementById('filterMonth').value;
-    if (!month) {
-      document.getElementById('sPaid').textContent = '-';
-      document.getElementById('sUnpaid').textContent = '-';
-      document.getElementById('sRate').textContent = '-';
-      document.getElementById('unpaidList').innerHTML = '<span style="color:var(--text-muted);font-size:13px">اختر شهراً للعرض</span>';
-      document.getElementById('paidTableBody').innerHTML = '<tr><td colspan="3" class="empty">اختر شهراً للعرض</td></tr>';
-      return;
-    }
-
-    const monthPay = allPayments.filter(p => p.month === month);
-    const paidIds = new Set(monthPay.map(p => p.contributorId));
-    const totalPeople = allContributors.length;
-    const paid = paidIds.size;
-    const unpaid = totalPeople - paid;
-    const rate = totalPeople ? Math.round((paid/totalPeople)*100) : 0;
-
-    document.getElementById('sPaid').textContent = paid;
-    document.getElementById('sUnpaid').textContent = unpaid < 0 ? 0 : unpaid;
-    document.getElementById('sRate').textContent = rate + '%';
-
-    // Unpaid list
-    const unpaidPeople = allContributors.filter(c => !paidIds.has(c.id));
-    const ul = document.getElementById('unpaidList');
-    if (!unpaidPeople.length) {
-      ul.innerHTML = '<span style="color:var(--primary-light);font-size:13px">🎉 الجميع دفعوا في هذا الشهر!</span>';
-    } else {
-      ul.innerHTML = unpaidPeople.map(c => `<span class="unpaid-chip">${c.name}</span>`).join('');
-    }
-
-    // Paid table
-    const paidData = monthPay.map(p => {
-      const c = allContributors.find(x => x.id === p.contributorId);
-      return { name: c?.name || p.contributorId, month: p.month, amount: p.amount };
-    });
-    const pb = document.getElementById('paidTableBody');
-    if (!paidData.length) {
-      pb.innerHTML = '<tr><td colspan="3" class="empty">لا أحد دفع في هذا الشهر</td></tr>';
-    } else {
-      pb.innerHTML = paidData.map(r => `<tr>
-        <td>${r.name}</td>
-        <td><span class="badge badge-green">${r.month}</span></td>
-        <td style="font-weight:700;color:var(--primary-light)">${Number(r.amount).toLocaleString('ar-EG')}</td>
-      </tr>`).join('');
-    }
-  };
-
-  // ---------------------------------------------------
-  // Toast
-  // ---------------------------------------------------
-  window.showToast = function(msg, err=false) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = err ? 'error show' : 'show';
-    setTimeout(() => t.className = '', 3000);
-  };
-
-  // ---------------------------------------------------
-  // Set current month
-  // ---------------------------------------------------
-  function setCurrentMonth() {
-    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
-                    'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-    const now = new Date();
-    const current = `${months[now.getMonth()]} ${now.getFullYear()}`;
-    const sel = document.getElementById('monthSelect');
-    for (let o of sel.options) { if (o.value === current) { o.selected = true; break; } }
-    // Add next year months if needed
-    if (!Array.from(sel.options).find(o=>o.value===current)) {
-      const opt = new Option(current, current, true, true);
-      sel.insertBefore(opt, sel.firstChild);
-    }
-  }
-
-  // ---------------------------------------------------
-  // Month Filter for Import
-  // ---------------------------------------------------
-  let allValidRows = []; // كل الصفوف الصحيحة من الملف قبل الفلتر
-
-  window.applyMonthFilter = function() {
-    if (!allValidRows.length) return;
-    const month = document.getElementById('importMonthFilter').value;
-    importRows = month ? allValidRows.filter(r => r.month === month) : [...allValidRows];
-
-    // Update badge
-    const badge = document.getElementById('importMonthBadge');
-    const countEl = document.getElementById('importMonthCount');
-    if (month) {
-      badge.style.display = 'block';
-      countEl.textContent = `${importRows.length} سجل في ${month}`;
-    } else {
-      badge.style.display = 'none';
-    }
-
-    renderPreview(importRows, []);
-  };
-
-  // ---------------------------------------------------
-  // WhatsApp Group Link
-  // ---------------------------------------------------
-  window.saveGroupLink = function() {
-    const val = document.getElementById('waGroupLink').value.trim();
-    const statusEl = document.getElementById('groupLinkStatus');
-
-    if (!val) {
-      localStorage.removeItem('wa_group_link');
-      statusEl.style.display = 'block';
-      statusEl.innerHTML = `<span style="color:var(--text-muted);font-size:13px">🗑️ تم حذف الرابط</span>`;
-      return;
-    }
-
-    if (!val.includes('chat.whatsapp.com/') && !val.startsWith('https://wa.me/')) {
-      statusEl.style.display = 'block';
-      statusEl.innerHTML = `<span style="color:#e74c3c;font-size:13px">❌ رابط غير صحيح — يجب أن يبدأ بـ https://chat.whatsapp.com/</span>`;
-      return;
-    }
-
-    localStorage.setItem('wa_group_link', val);
-    statusEl.style.display = 'block';
-    statusEl.innerHTML = `<span style="color:var(--primary-light);font-size:13px">✅ تم حفظ رابط الجروب بنجاح</span>`;
-    showToast('✅ تم حفظ رابط الجروب');
-  };
-
-  function loadSavedGroupLink() {
-    const saved = localStorage.getItem('wa_group_link');
-    if (saved) document.getElementById('waGroupLink').value = saved;
-  }
-
-  // ---------------------------------------------------
-  // Settings Modal
-  // ---------------------------------------------------
-  window.openSettings = function() {
-    loadSavedGroupLink();
-    document.getElementById('settingsModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  };
-  window.closeSettings = function() {
-    document.getElementById('settingsModal').classList.remove('open');
-    document.body.style.overflow = '';
-  };
-  window.handleSettingsOverlay = function(e) {
-    if (e.target.id === 'settingsModal') closeSettings();
-  };
-
-  // ---------------------------------------------------
-  // Download Template Excel
-  // ---------------------------------------------------
-  window.downloadTemplate = function() {
-    // Build CSV template with Arabic headers
-    const rows = [
-      ['الاسم', 'الشهر', 'المبلغ'],
-      ['أحمد محمد', 'مارس 2026', '500'],
-      ['فاطمة علي', 'مارس 2026', '500'],
-      ['خالد إبراهيم', 'فبراير 2026', '500'],
-    ];
-    const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n'); // BOM for Arabic
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'نموذج_مساهمات.csv';
-    a.click();
-  };
-
-  // ---------------------------------------------------
-  // Drag & Drop
-  // ---------------------------------------------------
-  window.handleDragOver = function(e) {
-    e.preventDefault();
-    document.getElementById('uploadArea').classList.add('drag-over');
-  };
-  window.handleDragLeave = function() {
-    document.getElementById('uploadArea').classList.remove('drag-over');
-  };
-  window.handleDrop = function(e) {
-    e.preventDefault();
-    document.getElementById('uploadArea').classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file) processExcelFile(file);
-  };
-  window.handleFileSelect = function(e) {
-    const file = e.target.files[0];
-    if (file) processExcelFile(file);
-  };
-
-  // ---------------------------------------------------
-  // Parse Excel / CSV
-  // ---------------------------------------------------
-  let importRows = []; // valid rows ready to import
-
-  async function processExcelFile(file) {
-    resetImport();
-
-    // Show loading state
-    const area = document.getElementById('uploadArea');
-    area.innerHTML = `<div class="upload-icon pulse">⏳</div><div class="upload-text">جاري قراءة الملف...</div>`;
-
-    const ext = file.name.split('.').pop().toLowerCase();
-
-    try {
-      let data = [];
-
-      if (ext === 'csv') {
-        const text = await file.text();
-        const clean = text.replace(/^\uFEFF/, ''); // Remove BOM
-        const lines = clean.split(/\r?\n/).filter(l => l.trim());
-        data = lines.map(l => {
-          // Handle quoted CSV fields
-          const cols = [];
-          let cur = '', inQ = false;
-          for (const ch of l) {
-            if (ch === '"') { inQ = !inQ; }
-            else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-            else cur += ch;
-          }
-          cols.push(cur.trim());
-          return cols;
-        });
-      } else if (ext === 'xlsx' || ext === 'xls') {
-        const XLSX = await loadSheetJS();
-        const buffer = await file.arrayBuffer();
-        const wb = XLSX.read(buffer, { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-      } else {
-        throw new Error('صيغة الملف غير مدعومة. استخدم xlsx أو csv');
       }
 
-      if (!data.length || data.length < 2) {
-        throw new Error('الملف فارغ أو لا يحتوي على بيانات');
-      }
+      populateFilterMonths();
+      renderFilteredStats();
+    }
 
-      // Skip header row, filter empty rows
-      const rows = data.slice(1).filter(r => r.some(c => String(c).trim() !== ''));
-      if (!rows.length) throw new Error('لا توجد بيانات بعد السطر الأول');
-
-      const valid = [], errors = [];
-
-      rows.forEach((r, i) => {
-        const name   = String(r[0] ?? '').trim();
-        const month  = String(r[1] ?? '').trim();
-        const rawAmt = String(r[2] ?? '').replace(/[^0-9.]/g, '');
-        const amount = parseFloat(rawAmt);
-
-        if (!name)                       errors.push(`سطر ${i+2}: الاسم فارغ`);
-        else if (!month)                 errors.push(`سطر ${i+2}: الشهر فارغ`);
-        else if (isNaN(amount) || amount <= 0) errors.push(`سطر ${i+2}: المبلغ غير صحيح "${r[2]}"`);
-        else valid.push({ name, month, amount });
-      });
-
-      importRows = valid;
-      allValidRows = [...valid];
-
-      // Auto-populate months found in file into the filter dropdown
-      const foundMonths = [...new Set(valid.map(r => r.month))].sort();
-      const sel = document.getElementById('importMonthFilter');
-      // Keep first "كل الشهور" option, remove old dynamic ones, add new
-      while (sel.options.length > 1) sel.remove(1);
-      foundMonths.forEach(m => {
+    window.populateFilterMonths = function () {
+      const months = [...new Set(allPayments.map(p => p.month))];
+      const sel = document.getElementById('filterMonth');
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">-- كل الشهور --</option>';
+      months.sort().forEach(m => {
         const o = document.createElement('option');
         o.value = m; o.textContent = m;
         sel.appendChild(o);
       });
-      // Auto-select if only one month found
-      if (foundMonths.length === 1) {
-        sel.value = foundMonths[0];
-        applyMonthFilter();
-      } else {
-        sel.value = '';
-        document.getElementById('importMonthBadge').style.display = 'none';
+      if (cur) sel.value = cur;
+    };
+
+    window.renderFilteredStats = function () {
+      const month = document.getElementById('filterMonth').value;
+      if (!month) {
+        document.getElementById('sPaid').textContent = '-';
+        document.getElementById('sUnpaid').textContent = '-';
+        document.getElementById('sRate').textContent = '-';
+        document.getElementById('unpaidList').innerHTML = '<span style="color:var(--text-muted);font-size:13px">اختر شهراً للعرض</span>';
+        document.getElementById('paidTableBody').innerHTML = '<tr><td colspan="3" class="empty">اختر شهراً للعرض</td></tr>';
+        return;
       }
 
-      // Restore upload area
-      area.innerHTML = `
+      const monthPay = allPayments.filter(p => p.month === month);
+      const paidIds = new Set(monthPay.map(p => p.contributorId));
+      const totalPeople = allContributors.length;
+      const paid = paidIds.size;
+      const unpaid = totalPeople - paid;
+      const rate = totalPeople ? Math.round((paid / totalPeople) * 100) : 0;
+
+      document.getElementById('sPaid').textContent = paid;
+      document.getElementById('sUnpaid').textContent = unpaid < 0 ? 0 : unpaid;
+      document.getElementById('sRate').textContent = rate + '%';
+
+      // Unpaid list
+      const unpaidPeople = allContributors.filter(c => !paidIds.has(c.id));
+      const ul = document.getElementById('unpaidList');
+      if (!unpaidPeople.length) {
+        ul.innerHTML = '<span style="color:var(--primary-light);font-size:13px">🎉 الجميع دفعوا في هذا الشهر!</span>';
+      } else {
+        ul.innerHTML = unpaidPeople.map(c => `<span class="unpaid-chip">${c.name}</span>`).join('');
+      }
+
+      // Paid table
+      const paidData = monthPay.map(p => {
+        const c = allContributors.find(x => x.id === p.contributorId);
+        return { name: c?.name || p.contributorId, month: p.month, amount: p.amount };
+      });
+      const pb = document.getElementById('paidTableBody');
+      if (!paidData.length) {
+        pb.innerHTML = '<tr><td colspan="3" class="empty">لا أحد دفع في هذا الشهر</td></tr>';
+      } else {
+        pb.innerHTML = paidData.map(r => `<tr>
+        <td>${r.name}</td>
+        <td><span class="badge badge-green">${r.month}</span></td>
+        <td style="font-weight:700;color:var(--primary-light)">${Number(r.amount).toLocaleString('ar-EG')}</td>
+      </tr>`).join('');
+      }
+    };
+
+    // ---------------------------------------------------
+    // Toast
+    // ---------------------------------------------------
+    window.showToast = function (msg, err = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = err ? 'error show' : 'show';
+      setTimeout(() => t.className = '', 3000);
+    };
+
+    // ---------------------------------------------------
+    // Set current month
+    // ---------------------------------------------------
+    function setCurrentMonth() {
+      const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+      const now = new Date();
+      const current = `${months[now.getMonth()]} ${now.getFullYear()}`;
+      const sel = document.getElementById('monthSelect');
+      for (let o of sel.options) { if (o.value === current) { o.selected = true; break; } }
+      // Add next year months if needed
+      if (!Array.from(sel.options).find(o => o.value === current)) {
+        const opt = new Option(current, current, true, true);
+        sel.insertBefore(opt, sel.firstChild);
+      }
+    }
+
+    // ---------------------------------------------------
+    // Month Filter for Import
+    // ---------------------------------------------------
+    let allValidRows = []; // كل الصفوف الصحيحة من الملف قبل الفلتر
+
+    window.applyMonthFilter = function () {
+      if (!allValidRows.length) return;
+      const month = document.getElementById('importMonthFilter').value;
+      importRows = month ? allValidRows.filter(r => r.month === month) : [...allValidRows];
+
+      // Update badge
+      const badge = document.getElementById('importMonthBadge');
+      const countEl = document.getElementById('importMonthCount');
+      if (month) {
+        badge.style.display = 'block';
+        countEl.textContent = `${importRows.length} سجل في ${month}`;
+      } else {
+        badge.style.display = 'none';
+      }
+
+      renderPreview(importRows, []);
+    };
+
+    // ---------------------------------------------------
+    // WhatsApp Group Link
+    // ---------------------------------------------------
+    window.saveGroupLink = function () {
+      const val = document.getElementById('waGroupLink').value.trim();
+      const statusEl = document.getElementById('groupLinkStatus');
+
+      if (!val) {
+        localStorage.removeItem('wa_group_link');
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = `<span style="color:var(--text-muted);font-size:13px">🗑️ تم حذف الرابط</span>`;
+        return;
+      }
+
+      if (!val.includes('chat.whatsapp.com/') && !val.startsWith('https://wa.me/')) {
+        statusEl.style.display = 'block';
+        statusEl.innerHTML = `<span style="color:#e74c3c;font-size:13px">❌ رابط غير صحيح — يجب أن يبدأ بـ https://chat.whatsapp.com/</span>`;
+        return;
+      }
+
+      localStorage.setItem('wa_group_link', val);
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = `<span style="color:var(--primary-light);font-size:13px">✅ تم حفظ رابط الجروب بنجاح</span>`;
+      showToast('✅ تم حفظ رابط الجروب');
+    };
+
+    function loadSavedGroupLink() {
+      const saved = localStorage.getItem('wa_group_link');
+      if (saved) document.getElementById('waGroupLink').value = saved;
+    }
+
+    // ---------------------------------------------------
+    // Settings Modal
+    // ---------------------------------------------------
+    window.openSettings = function () {
+      loadSavedGroupLink();
+      loadContributors(); // Load contributors to update count
+      document.getElementById('settingsModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+    window.closeSettings = function () {
+      document.getElementById('settingsModal').classList.remove('open');
+      document.body.style.overflow = '';
+    };
+    window.handleSettingsOverlay = function (e) {
+      if (e.target.id === 'settingsModal') closeSettings();
+    };
+
+    // ---------------------------------------------------
+    // Download Template Excel
+    // ---------------------------------------------------
+    window.downloadTemplate = function () {
+      // Build CSV template with Arabic headers
+      const rows = [
+        ['الاسم', 'الشهر', 'المبلغ'],
+        ['أحمد محمد', 'مارس 2026', '500'],
+        ['فاطمة علي', 'مارس 2026', '500'],
+        ['خالد إبراهيم', 'فبراير 2026', '500'],
+      ];
+      const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n'); // BOM for Arabic
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'نموذج_مساهمات.csv';
+      a.click();
+    };
+
+    // ---------------------------------------------------
+    // Drag & Drop
+    // ---------------------------------------------------
+    window.handleDragOver = function (e) {
+      e.preventDefault();
+      document.getElementById('uploadArea').classList.add('drag-over');
+    };
+    window.handleDragLeave = function () {
+      document.getElementById('uploadArea').classList.remove('drag-over');
+    };
+    window.handleDrop = function (e) {
+      e.preventDefault();
+      document.getElementById('uploadArea').classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) processExcelFile(file);
+    };
+    window.handleFileSelect = function (e) {
+      const file = e.target.files[0];
+      if (file) processExcelFile(file);
+    };
+
+    // ---------------------------------------------------
+    // Parse Excel / CSV
+    // ---------------------------------------------------
+    let importRows = []; // valid rows ready to import
+
+    async function processExcelFile(file) {
+      resetImport();
+
+      // Show loading state
+      const area = document.getElementById('uploadArea');
+      area.innerHTML = `<div class="upload-icon pulse">⏳</div><div class="upload-text">جاري قراءة الملف...</div>`;
+
+      const ext = file.name.split('.').pop().toLowerCase();
+
+      try {
+        let data = [];
+
+        if (ext === 'csv') {
+          const text = await file.text();
+          const clean = text.replace(/^\uFEFF/, ''); // Remove BOM
+          
+          // Try different line endings
+          let lines = clean.split(/\r?\n/).filter(l => l.trim());
+          
+          // If no data found, try tab-separated
+          if (lines.length === 0 || lines.every(l => !l.includes(','))) {
+            lines = clean.split(/\t/).filter(l => l.trim());
+          }
+          
+          data = lines.map(l => {
+            // Handle both comma and semicolon as delimiters
+            const delimiter = l.includes(',') ? ',' : (l.includes(';') ? ';' : '\t');
+            const cols = l.split(delimiter).map(col => {
+              // Remove quotes if present
+              return col.replace(/^"|"$/g, '').trim();
+            });
+            return cols;
+          });
+        } else if (ext === 'xlsx' || ext === 'xls') {
+          const XLSX = await loadSheetJS();
+          const buffer = await file.arrayBuffer();
+          const wb = XLSX.read(buffer, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        } else {
+          throw new Error('صيغة الملف غير مدعومة. استخدم xlsx أو csv');
+        }
+
+        if (!data.length || data.length < 2) {
+          console.error('File data issue:', { dataLength: data.length, dataPreview: data.slice(0, 5) });
+          throw new Error('الملف فارغ أو لا يحتوي على بيانات كافية');
+        }
+
+        // Skip header row, filter empty rows
+        const rows = data.slice(1).filter(r => r.some(c => String(c).trim() !== ''));
+        if (!rows.length) throw new Error('لا توجد بيانات بعد السطر الأول');
+
+        // Debug: log first few rows to understand the structure
+        console.log('Excel data structure:', data.slice(0, 3));
+        console.log('Processed rows:', rows.slice(0, 3));
+
+        const valid = [], errors = [];
+
+        rows.forEach((r, i) => {
+          // More robust column reading - handle undefined and empty values
+          const name = String(r[0] ?? '').trim();
+          const month = String(r[1] ?? '').trim();
+          const amountCell = String(r[2] ?? '').trim();
+          
+          // Better amount parsing - handle various formats
+          let rawAmt = amountCell.replace(/[^0-9.]/g, '');
+          // Handle comma as decimal separator
+          rawAmt = rawAmt.replace(',', '.');
+          const amount = parseFloat(rawAmt);
+
+          // Debug logging for first few rows
+          if (i < 3) {
+            console.log(`Row ${i + 2}:`, { name, month, amountCell, rawAmt, amount });
+          }
+
+          if (!name) errors.push(`سطر ${i + 2}: الاسم فارغ`);
+          else if (!month) errors.push(`سطر ${i + 2}: الشهر فارغ`);
+          else if (isNaN(amount) || amount <= 0) errors.push(`سطر ${i + 2}: المبلغ غير صحيح "${amountCell}"`);
+          else valid.push({ name, month, amount });
+        });
+
+        importRows = valid;
+        allValidRows = [...valid];
+
+        // Auto-populate months found in file into the filter dropdown
+        const foundMonths = [...new Set(valid.map(r => r.month))].sort();
+        const sel = document.getElementById('importMonthFilter');
+        // Keep first "كل الشهور" option, remove old dynamic ones, add new
+        while (sel.options.length > 1) sel.remove(1);
+        foundMonths.forEach(m => {
+          const o = document.createElement('option');
+          o.value = m; o.textContent = m;
+          sel.appendChild(o);
+        });
+        // Auto-select if only one month found
+        if (foundMonths.length === 1) {
+          sel.value = foundMonths[0];
+          applyMonthFilter();
+        } else {
+          sel.value = '';
+          document.getElementById('importMonthBadge').style.display = 'none';
+        }
+
+        // Restore upload area
+        area.innerHTML = `
         <div class="upload-icon">✅</div>
         <div class="upload-text" style="color:var(--primary-light)">${file.name}</div>
         <div class="upload-sub">${rows.length} صف - ${valid.length} صحيح</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          📊 تم قراءة ${data.length} صفوف من الملف
+        </div>
         <button class="btn btn-outline" onclick="document.getElementById('excelFile') && document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
           📁 تغيير الملف
         </button>`;
 
-      renderPreview(valid, errors);
+        renderPreview(valid, errors);
 
-    } catch(e) {
-      // Restore upload area on error
-      area.innerHTML = `
+      } catch (e) {
+        console.error('Import error details:', {
+          error: e.message,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          extension: ext
+        });
+        
+        // Restore upload area on error
+        area.innerHTML = `
         <div class="upload-icon">📂</div>
         <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
         <div class="upload-sub">xlsx / xls / csv</div>
+        <div style="font-size:11px;color:#e74c3c;margin-top:8px">
+          ⚠️ ${e.message}
+        </div>
         <button class="btn btn-outline" onclick="document.getElementById('excelFile') && document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
           📁 اختيار ملف
         </button>`;
-      showToast('❌ ' + e.message, true);
-    }
-  }
-
-  async function loadSheetJS() {
-    if (window.XLSX) return window.XLSX;
-    return new Promise((res, rej) => {
-      const existing = document.querySelector('script[src*="xlsx"]');
-      if (existing) {
-        // Already loading, wait for it
-        const wait = setInterval(() => {
-          if (window.XLSX) { clearInterval(wait); res(window.XLSX); }
-        }, 100);
-        setTimeout(() => { clearInterval(wait); rej(new Error('انتهت مهلة تحميل مكتبة Excel')); }, 10000);
-        return;
+        showToast('❌ ' + e.message, true);
       }
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-      s.onload = () => { if (window.XLSX) res(window.XLSX); else rej(new Error('فشل تهيئة المكتبة')); };
-      s.onerror = () => rej(new Error('فشل تحميل مكتبة Excel - تحقق من الاتصال'));
-      document.head.appendChild(s);
-    });
-  }
+    }
 
-  function renderPreview(valid, errors) {
-    const preview = document.getElementById('importPreview');
-    const body = document.getElementById('previewBody');
-    const countEl = document.getElementById('previewCount');
-    const errEl = document.getElementById('importErrors');
+    async function loadSheetJS() {
+      if (window.XLSX) return window.XLSX;
+      return new Promise((res, rej) => {
+        const existing = document.querySelector('script[src*="xlsx"]');
+        if (existing) {
+          // Already loading, wait for it
+          const wait = setInterval(() => {
+            if (window.XLSX) { clearInterval(wait); res(window.XLSX); }
+          }, 100);
+          setTimeout(() => { clearInterval(wait); rej(new Error('انتهت مهلة تحميل مكتبة Excel')); }, 10000);
+          return;
+        }
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = () => { if (window.XLSX) res(window.XLSX); else rej(new Error('فشل تهيئة المكتبة')); };
+        s.onerror = () => rej(new Error('فشل تحميل مكتبة Excel - تحقق من الاتصال'));
+        document.head.appendChild(s);
+      });
+    }
 
-    countEl.textContent = `${valid.length} سجل صحيح`;
-    countEl.className = valid.length ? 'badge badge-green' : 'badge badge-red';
+    function renderPreview(valid, errors) {
+      const preview = document.getElementById('importPreview');
+      const body = document.getElementById('previewBody');
+      const countEl = document.getElementById('previewCount');
+      const errEl = document.getElementById('importErrors');
 
-    body.innerHTML = valid.map((r, i) => `
+      countEl.textContent = `${valid.length} سجل صحيح`;
+      countEl.className = valid.length ? 'badge badge-green' : 'badge badge-red';
+
+      body.innerHTML = valid.map((r, i) => `
       <tr>
-        <td style="color:var(--text-muted)">${i+1}</td>
+        <td style="color:var(--text-muted)">${i + 1}</td>
         <td>${r.name}</td>
         <td><span class="badge badge-green">${r.month}</span></td>
         <td style="color:var(--primary-light);font-weight:700">${r.amount.toLocaleString('ar-EG')}</td>
@@ -1749,108 +2399,108 @@
       </tr>
     `).join('') || '<tr><td colspan="5" class="empty">لا توجد بيانات صحيحة</td></tr>';
 
-    if (errors.length) {
-      errEl.style.display = 'block';
-      errEl.innerHTML = `<strong>⚠️ سطور بها أخطاء (${errors.length}):</strong><br>` +
-        errors.map(e => `• ${e}`).join('<br>');
-    } else {
-      errEl.style.display = 'none';
+      if (errors.length) {
+        errEl.style.display = 'block';
+        errEl.innerHTML = `<strong>⚠️ سطور بها أخطاء (${errors.length}):</strong><br>` +
+          errors.map(e => `• ${e}`).join('<br>');
+      } else {
+        errEl.style.display = 'none';
+      }
+
+      document.getElementById('confirmImportBtn').disabled = valid.length === 0;
+      preview.style.display = 'block';
     }
 
-    document.getElementById('confirmImportBtn').disabled = valid.length === 0;
-    preview.style.display = 'block';
-  }
-
-  window.resetImport = function() {
-    importRows = [];
-    allValidRows = [];
-    document.getElementById('importPreview').style.display = 'none';
-    document.getElementById('importProgress').style.display = 'none';
-    document.getElementById('importResult').style.display = 'none';
-    document.getElementById('importMonthBadge').style.display = 'none';
-    document.getElementById('importMonthFilter').value = '';
-    document.getElementById('excelFile').value = '';
-    document.getElementById('uploadArea').innerHTML = `
+    window.resetImport = function () {
+      importRows = [];
+      allValidRows = [];
+      document.getElementById('importPreview').style.display = 'none';
+      document.getElementById('importProgress').style.display = 'none';
+      document.getElementById('importResult').style.display = 'none';
+      document.getElementById('importMonthBadge').style.display = 'none';
+      document.getElementById('importMonthFilter').value = '';
+      document.getElementById('excelFile').value = '';
+      document.getElementById('uploadArea').innerHTML = `
       <div class="upload-icon">📂</div>
       <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
       <div class="upload-sub">xlsx / xls / csv</div>
       <button class="btn btn-outline" onclick="document.getElementById('excelFile') && document.getElementById('excelFile').click()" style="margin-top:14px;font-size:13px;padding:9px 20px">
         📁 اختيار ملف
       </button>`;
-  };
+    };
 
-  // ---------------------------------------------------
-  // Confirm Import → write to Firebase
-  // ---------------------------------------------------
-  window.confirmImport = async function() {
-    if (!importRows.length) return;
+    // ---------------------------------------------------
+    // Confirm Import → write to Firebase
+    // ---------------------------------------------------
+    window.confirmImport = async function () {
+      if (!importRows.length) return;
 
-    document.getElementById('importPreview').style.display = 'none';
-    const progressWrap = document.getElementById('importProgress');
-    const progressBar  = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    progressWrap.style.display = 'block';
+      document.getElementById('importPreview').style.display = 'none';
+      const progressWrap = document.getElementById('importProgress');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      progressWrap.style.display = 'block';
 
-    let done = 0, skipped = 0, failed = 0;
-    const total = importRows.length;
+      let done = 0, skipped = 0, failed = 0;
+      const total = importRows.length;
 
-    for (const row of importRows) {
-      try {
-        // Find or create contributor
-        let contributor = allContributors.find(c => c.name === row.name);
-        let contributorId;
+      for (const row of importRows) {
+        try {
+          // Find or create contributor
+          let contributor = allContributors.find(c => c.name === row.name);
+          let contributorId;
 
-        if (!contributor) {
-          if (window._demoMode) {
-            contributorId = 'demo_' + Date.now() + Math.random();
-            allContributors.push({ id: contributorId, name: row.name });
+          if (!contributor) {
+            if (window._demoMode) {
+              contributorId = 'demo_' + Date.now() + Math.random();
+              allContributors.push({ id: contributorId, name: row.name });
+            } else {
+              const docRef = await addDoc(collection(db, 'contributors'), {
+                name: row.name,
+                createdAt: serverTimestamp()
+              });
+              contributorId = docRef.id;
+              allContributors.push({ id: contributorId, name: row.name });
+            }
           } else {
-            const docRef = await addDoc(collection(db, 'contributors'), {
-              name: row.name,
-              createdAt: serverTimestamp()
-            });
-            contributorId = docRef.id;
-            allContributors.push({ id: contributorId, name: row.name });
+            contributorId = contributor.id;
           }
-        } else {
-          contributorId = contributor.id;
-        }
 
-        // Check if already paid this month (avoid duplicates)
-        const alreadyPaid = allPayments.find(
-          p => p.contributorId === contributorId && p.month === row.month
-        );
+          // Check if already paid this month (avoid duplicates)
+          const alreadyPaid = allPayments.find(
+            p => p.contributorId === contributorId && p.month === row.month
+          );
 
-        if (alreadyPaid) { skipped++; }
-        else {
-          if (window._demoMode) {
-            allPayments.push({ id: 'p_'+Date.now(), contributorId, month: row.month, amount: row.amount, timestamp: new Date() });
-          } else {
-            await addDoc(collection(db, 'payments'), {
-              contributorId,
-              month: row.month,
-              amount: row.amount,
-              timestamp: serverTimestamp()
-            });
-            allPayments.push({ id: 'tmp', contributorId, month: row.month, amount: row.amount, timestamp: new Date() });
+          if (alreadyPaid) { skipped++; }
+          else {
+            if (window._demoMode) {
+              allPayments.push({ id: 'p_' + Date.now(), contributorId, month: row.month, amount: row.amount, timestamp: new Date() });
+            } else {
+              await addDoc(collection(db, 'payments'), {
+                contributorId,
+                month: row.month,
+                amount: row.amount,
+                timestamp: serverTimestamp()
+              });
+              allPayments.push({ id: 'tmp', contributorId, month: row.month, amount: row.amount, timestamp: new Date() });
+            }
+            done++;
           }
-          done++;
-        }
-      } catch(e) { failed++; }
+        } catch (e) { failed++; }
 
-      // Update progress
-      const pct = Math.round(((done + skipped + failed) / total) * 100);
-      progressBar.style.width = pct + '%';
-      progressText.textContent = `جاري الاستيراد... ${done + skipped + failed} / ${total}`;
-      await new Promise(r => setTimeout(r, 50)); // small delay for UX
-    }
+        // Update progress
+        const pct = Math.round(((done + skipped + failed) / total) * 100);
+        progressBar.style.width = pct + '%';
+        progressText.textContent = `جاري الاستيراد... ${done + skipped + failed} / ${total}`;
+        await new Promise(r => setTimeout(r, 50)); // small delay for UX
+      }
 
-    progressWrap.style.display = 'none';
+      progressWrap.style.display = 'none';
 
-    // Show result
-    const resultEl = document.getElementById('importResult');
-    resultEl.style.display = 'block';
-    resultEl.innerHTML = `
+      // Show result
+      const resultEl = document.getElementById('importResult');
+      resultEl.style.display = 'block';
+      resultEl.innerHTML = `
       <div class="result-card ${failed > 0 && done === 0 ? 'error' : ''}">
         <div style="font-size:32px;margin-bottom:8px">${done > 0 ? '🎉' : '⚠️'}</div>
         <div style="font-weight:700;font-size:16px;margin-bottom:8px">اكتمل الاستيراد</div>
@@ -1862,85 +2512,83 @@
       </div>
     `;
 
-    // Refresh data
-    if (!window._demoMode) await loadData(true);
-    else updateStats();
+      // Refresh data
+      if (!window._demoMode) await loadData(true);
+      else updateStats();
 
-    showToast(`✅ استُورد ${done} سجل بنجاح`);
-  };
+      showToast(`✅ استُورد ${done} سجل بنجاح`);
+    };
 
-  // Boot
-  setCurrentMonth();
-  initFirebase();
-</script>
+    // Boot
+    setCurrentMonth();
+    initFirebase();
+  </script>
 
-<!-- سكريبت عادي لربط أحداث HTML بدوال الـ module -->
-<script>
-  // ننتظر حتى تنتهي الـ module من التحميل ثم نربط الأحداث
-  function bindEvents() {
-    // Header settings button
-    const settingsBtn = document.querySelector('.btn-settings');
-    if (settingsBtn) settingsBtn.onclick = () => window.openSettings();
+  <!-- سكريبت عادي لربط أحداث HTML بدوال الـ module -->
+  <script>
+    // ننتظر حتى تنتهي الـ module من التحميل ثم نربط الأحداث
+    function bindEvents() {
 
-    // Close settings
-    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-    if (closeSettingsBtn) closeSettingsBtn.onclick = () => window.closeSettings();
+      // Close settings
+      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+      if (closeSettingsBtn) closeSettingsBtn.onclick = () => window.closeSettings();
 
-    // Settings overlay
-    const settingsModal = document.getElementById('settingsModal');
-    if (settingsModal) settingsModal.onclick = (e) => { if (e.target.id === 'settingsModal') window.closeSettings(); };
+      // Settings overlay
+      const settingsModal = document.getElementById('settingsModal');
+      if (settingsModal) settingsModal.onclick = (e) => { if (e.target.id === 'settingsModal') window.closeSettings(); };
 
-    // Stats modal overlay + close + print
-    const statsModal = document.getElementById('statsModal');
-    if (statsModal) statsModal.onclick = (e) => { if (e.target.id === 'statsModal') window.closeModal(); };
-    document.getElementById('closeModalBtn').onclick = () => window.closeModal();
-    document.getElementById('printStatsBtn').onclick = () => window.printStats();
+      // Stats modal overlay + close + print
+      const statsModal = document.getElementById('statsModal');
+      if (statsModal) statsModal.onclick = (e) => { if (e.target.id === 'statsModal') window.closeModal(); };
+      document.getElementById('closeModalBtn').onclick = () => window.closeModal();
+      document.getElementById('printStatsBtn').onclick = () => window.printStats();
 
-    // Main buttons
-    document.getElementById('submitBtn').onclick = () => window.submitAndSend();
-    document.getElementById('refreshBtn').onclick = () => window.loadData();
-    document.getElementById('statsBtn').onclick = () => window.openModal();
+      // Main buttons
+      document.getElementById('submitBtn').onclick = () => window.submitAndSend();
+      document.getElementById('refreshBtn').onclick = () => window.loadData();
+      document.getElementById('statsBtn').onclick = () => window.openModal();
 
-    // Month select
-    document.getElementById('monthSelect').onchange = () => window.updateStats();
+      // Month select
+      document.getElementById('monthSelect').onchange = () => window.updateStats();
 
-    // Name select
-    document.getElementById('nameSelect').onchange = () => window.handleNameSelect();
+      // Name select
+      document.getElementById('nameSelect').onchange = () => window.handleNameSelect();
 
-    // Filter month in stats modal
-    document.getElementById('filterMonth').onchange = () => window.renderFilteredStats();
+      // Filter month in stats modal
+      document.getElementById('filterMonth').onchange = () => window.renderFilteredStats();
 
-    // Import month filter
-    document.getElementById('importMonthFilter').onchange = () => window.applyMonthFilter();
+      // Import month filter
+      document.getElementById('importMonthFilter').onchange = () => window.applyMonthFilter();
 
-    // File input
-    document.getElementById('excelFile').onchange = (e) => window.handleFileSelect(e);
+      // File input
+      document.getElementById('excelFile').onchange = (e) => window.handleFileSelect(e);
 
-    // Upload area drag events
-    const uploadArea = document.getElementById('uploadArea');
-    uploadArea.ondragover = (e) => window.handleDragOver(e);
-    uploadArea.ondrop = (e) => window.handleDrop(e);
-    uploadArea.ondragleave = () => window.handleDragLeave();
+      // Upload area drag events
+      const uploadArea = document.getElementById('uploadArea');
+      uploadArea.ondragover = (e) => window.handleDragOver(e);
+      uploadArea.ondrop = (e) => window.handleDrop(e);
+      uploadArea.ondragleave = () => window.handleDragLeave();
 
-    // Download template
-    document.getElementById('downloadTemplateBtn').onclick = () => window.downloadTemplate();
+      // Download template
+      document.getElementById('downloadTemplateBtn').onclick = () => window.downloadTemplate();
 
-    // Choose file buttons (static ones)
-    document.getElementById('saveGroupLinkBtn').onclick = () => window.saveGroupLink();
-    document.getElementById('chooseFileBtn').onclick = () => document.getElementById('excelFile').click();
+      // Choose file buttons (static ones)
+      document.getElementById('saveGroupLinkBtn').onclick = () => window.saveGroupLink();
+      document.getElementById('chooseFileBtn').onclick = () => document.getElementById('excelFile').click();
 
-    // Confirm / cancel import
-    document.getElementById('confirmImportBtn').onclick = () => window.confirmImport();
-    document.getElementById('cancelImportBtn').onclick = () => window.resetImport();
-  }
-
-  // ننتظر الـ module تنتهي (تضع الدوال على window)
-  const waitForModule = setInterval(() => {
-    if (window.openSettings && window.loadData) {
-      clearInterval(waitForModule);
-      bindEvents();
+      // Confirm / cancel import
+      document.getElementById('confirmImportBtn').onclick = () => window.confirmImport();
+      document.getElementById('cancelImportBtn').onclick = () => window.resetImport();
     }
-  }, 50);
-</script>
+
+    // ننتظر الـ module تنتهي (تضع الدوال على window)
+    const waitForModule = setInterval(() => {
+      if (window.openSettings && window.loadData && window.closeSettings) {
+        clearInterval(waitForModule);
+        bindEvents();
+      }
+    }, 50);
+  </script>
 </body>
+
 </html>
