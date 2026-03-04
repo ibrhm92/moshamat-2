@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Contributors collection rules
+    match /contributors/{contributorId} {
+      allow read, write: if request.auth != null;
+      allow read, write: if true; // Allow public access for demo
+    }
+    
+    // Payments collection rules  
+    match /payments/{paymentId} {
+      allow read, write: if request.auth != null;
+      allow read, write: if true; // Allow public access for demo
+    }
+  }
+}

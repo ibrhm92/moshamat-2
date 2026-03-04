@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الإعدادات - مساهمات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">⚙️</span>
+      <h1>الإعدادات</h1>
+      <p class="subtitle">تكوين التطبيق</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link active">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- WhatsApp Group Section -->
+    <div class="main-card fade-in">
+      <div class="section-title">📲 إعداد جروب الواتساب</div>
+      
+      <div class="form-group">
+        <label>🔗 رابط دعوة الجروب</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="waGroupLink" placeholder="https://chat.whatsapp.com/XXXXXXXXXXXXXXX"
+            style="direction:ltr;flex:1;font-size:13px">
+          <button class="btn btn-primary" id="saveGroupLinkBtn"
+            style="padding:11px 16px;font-size:13px;white-space:nowrap">💾 حفظ</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">
+          📌 من الجروب: النقر على اسم الجروب ← رابط الدعوة ← نسخ الرابط
+        </div>
+      </div>
+      
+      <div id="groupLinkStatus" style="display:none;margin-top:10px"></div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="main-card fade-in">
+      <div class="section-title">🗄️ إدارة البيانات</div>
+      
+      <div class="form-group">
+        <label>📊 تصدير البيانات</label>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+          قم بتصدير جميع بيانات المساهمات كملف Excel
+        </p>
+        <button class="btn btn-outline" id="exportAllBtn">
+          📥 تصدير كل البيانات
+        </button>
+      </div>
+      
+      <div class="form-group" style="margin-top:20px">
+        <label>🗑️ حذف البيانات</label>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">
+          ⚠️ هذا الإجراء سيحذف جميع البيانات ولا يمكن التراجع عنه
+        </p>
+        <button class="btn btn-outline" id="clearDataBtn" style="border-color:var(--danger);color:var(--danger)">
+          🗑️ حذف كل البيانات
+        </button>
+      </div>
+    </div>
+
+    <!-- App Info -->
+    <div class="main-card fade-in">
+      <div class="section-title">ℹ️ معلومات التطبيق</div>
+      
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between">
+          <span>الإصدار:</span>
+          <strong>1.0.0</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>قاعدة البيانات:</span>
+          <strong>Firebase Firestore</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>وضع التشغيل:</span>
+          <strong id="appMode">جاري التحقق...</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/settings.js"></script>
+</body>
+
+</html>

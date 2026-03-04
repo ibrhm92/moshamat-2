@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الإحصائيات - مساهمات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">📊</span>
+      <h1>الإحصائيات</h1>
+      <p class="subtitle">نظرة عامة على المدفوعات</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link active">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- Month Filter -->
+    <div class="main-card fade-in">
+      <div class="section-title">📅 فلترة حسب الشهر</div>
+      <div class="filter-row">
+        <label>اختر الشهر:</label>
+        <select id="filterMonth">
+          <option value="">كل الأشهر</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid fade-in">
+      <div class="summary-card">
+        <div class="s-val" id="statTotal">0</div>
+        <div class="s-lbl">إجمالي المدفوعات</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-val" id="statContributors">0</div>
+        <div class="s-lbl">عدد المساهمين</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-val" id="statPayments">0</div>
+        <div class="s-lbl">عدد العمليات</div>
+      </div>
+    </div>
+
+    <!-- Monthly Stats -->
+    <div class="main-card fade-in">
+      <div class="section-title">📈 إحصائيات شهرية</div>
+      <div class="table-wrap">
+        <table id="monthlyTable">
+          <thead>
+            <tr>
+              <th>الشهر</th>
+              <th>الإجمالي</th>
+              <th>المساهمون</th>
+              <th>متوسط المبلغ</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyBody">
+            <tr>
+              <td colspan="4" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Contributors Stats -->
+    <div class="main-card fade-in">
+      <div class="section-title">👥 إحصائيات المساهمين</div>
+      <div class="table-wrap">
+        <table id="contributorsTable">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الهاتف</th>
+              <th>إجمالي المدفوعات</th>
+              <th>عدد المساهمات</th>
+              <th>متوسط المبلغ</th>
+            </tr>
+          </thead>
+          <tbody id="contributorsBody">
+            <tr>
+              <td colspan="5" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="printStatsBtn">
+        🖨️ طباعة الإحصائيات
+      </button>
+      <button class="btn btn-outline" id="exportBtn">
+        📥 تصدير Excel
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/statistics.js"></script>
+</body>
+
+</html>

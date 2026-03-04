@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رسائل الواتس - مساهمات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">💬</span>
+      <h1>رسائل الواتس</h1>
+      <p class="subtitle">إرسال تذكيرات للمساهمين</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link active">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- Month Selection -->
+    <div class="main-card fade-in">
+      <div class="section-title">📅 اختيار الشهر</div>
+      
+      <div class="form-group">
+        <label>📅 الشهر</label>
+        <select id="monthSelect">
+          <option value="يناير 2026">يناير 2026</option>
+          <option value="فبراير 2026">فبراير 2026</option>
+          <option value="مارس 2026" selected>مارس 2026</option>
+          <option value="أبريل 2026">أبريل 2026</option>
+          <option value="مايو 2026">مايو 2026</option>
+          <option value="يونيو 2026">يونيو 2026</option>
+          <option value="يوليو 2026">يوليو 2026</option>
+          <option value="أغسطس 2026">أغسطس 2026</option>
+          <option value="سبتمبر 2026">سبتمبر 2026</option>
+          <option value="أكتوبر 2026">أكتوبر 2026</option>
+          <option value="نوفمبر 2026">نوفمبر 2026</option>
+          <option value="ديسمبر 2026">ديسمبر 2026</option>
+        </select>
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn btn-primary" id="loadUnpaidBtn">
+          🔍 جلب غير الدافعين
+        </button>
+        <button class="btn btn-outline" id="loadDataBtn">
+          🔄 تحميل البيانات
+        </button>
+      </div>
+      
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+        💡 إذا لم يعمل زر جلب غير الدافعين، اضغط على "تحميل البيانات" أولاً
+      </div>
+    </div>
+
+    <!-- Unpaid Contributors -->
+    <div class="main-card fade-in" id="unpaidSection" style="display:none;">
+      <div class="section-title">👥 المساهمون الذين لم يدفعوا</div>
+      
+      <div class="stats-strip">
+        <div class="stat-card">
+          <div class="stat-label">عدد المساهمين</div>
+          <div class="stat-value" id="totalContributors">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">غير الدافعين</div>
+          <div class="stat-value" id="unpaidCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">لديهم هاتف</div>
+          <div class="stat-value" id="phoneCount">0</div>
+        </div>
+      </div>
+      
+      <div class="table-wrap">
+        <table id="unpaidTable">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الهاتف</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="unpaidBody">
+            <tr>
+              <td colspan="3" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Message Template -->
+    <div class="main-card fade-in" id="messageSection" style="display:none;">
+      <div class="section-title">📝 رسالة التذكير</div>
+      
+      <div style="background:rgba(52, 152, 219, 0.1);border:1px solid rgba(52, 152, 219, 0.3);border-radius:10px;padding:12px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
+        💡 <strong>ملاحظة:</strong> سيتم إرسال الرسائل بشكل خاص (private) لكل مساهم على حدة، وليس إلى مجموعة.
+      </div>
+      
+      <div class="form-group">
+        <label>📝 نص الرسالة</label>
+        <textarea id="messageText" rows="6" placeholder="اكتب رسالة التذكير هنا..." style="width:100%;resize:vertical;"></textarea>
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn btn-outline" id="previewBtn">
+          👀 معاينة الرسالة
+        </button>
+        <button class="btn btn-primary" id="sendAllBtn">
+          📤 إرسال رسائل خاصة
+        </button>
+      </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal-overlay" id="previewModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">👀 معاينة الرسالة</div>
+          <button class="btn-close" id="closePreviewBtn">✕</button>
+        </div>
+        
+        <div class="form-group">
+          <label>📝 نص الرسالة</label>
+          <div id="previewText" style="background:#f8f9fa;padding:15px;border-radius:8px;min-height:100px;white-space:pre-wrap;line-height:1.6;"></div>
+        </div>
+        
+        <div class="form-group">
+          <label>📊 سيتم الإرسال إلى:</label>
+          <div id="previewStats" style="color:#6c757d;font-size:14px;"></div>
+        </div>
+        
+        <div class="btn-row">
+          <button class="btn btn-outline" id="cancelPreviewBtn">
+            ❌ إلغاء
+          </button>
+          <button class="btn btn-primary" id="confirmSendBtn">
+            📤 تأكيد الإرسال
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/whatsapp.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المساهمات - مساهمات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">💰</span>
+      <h1>المساهمات</h1>
+      <p class="subtitle">عرض وتعديل جميع المساهمات</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link active">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- Filters Section -->
+    <div class="main-card fade-in">
+      <div class="section-title">🔍 فلترة المساهمات</div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>📅 الشهر</label>
+          <select id="filterMonth">
+            <option value="">جميع الأشهر</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>👤 المساهم</label>
+          <select id="filterContributor">
+            <option value="">جميع المساهمين</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>🔍 البحث</label>
+          <input type="text" id="searchPayments" placeholder="ابحث عن مساهم أو شهر...">
+        </div>
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn btn-primary" id="applyFiltersBtn">
+          🔍 تطبيق الفلاتر
+        </button>
+        <button class="btn btn-outline" id="resetFiltersBtn">
+          🔄 إعادة تعيين
+        </button>
+      </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="main-card fade-in">
+      <div class="section-title">💰 قائمة المساهمات</div>
+      
+      <!-- Summary Cards -->
+      <div class="stats-strip">
+        <div class="stat-card">
+          <div class="stat-label">إجمالي المساهمات</div>
+          <div class="stat-value" id="totalPayments">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">إجمالي المبلغ</div>
+          <div class="stat-value" id="totalAmount">0 جنيه</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">متوسط المبلغ</div>
+          <div class="stat-value" id="averageAmount">0 جنيه</div>
+        </div>
+      </div>
+      
+      <div class="table-wrap">
+        <table id="paymentsTable">
+          <thead>
+            <tr>
+              <th>المساهم</th>
+              <th>الهاتف</th>
+              <th>الشهر</th>
+              <th>المبلغ</th>
+              <th>التاريخ</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="paymentsBody">
+            <tr>
+              <td colspan="6" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <!-- Edit Payment Modal -->
+  <div class="modal-overlay" id="editPaymentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ تعديل المساهمة</div>
+        <button class="btn-close" id="closeEditPaymentBtn">✕</button>
+      </div>
+      
+      <div class="form-group">
+        <label>👤 المساهم</label>
+        <input type="text" id="editContributorName" readonly style="background:rgba(255,255,255,0.05)">
+      </div>
+      
+      <div class="form-group">
+        <label>📅 الشهر</label>
+        <input type="text" id="editMonth" readonly style="background:rgba(255,255,255,0.05)">
+      </div>
+      
+      <div class="form-group">
+        <label>💰 المبلغ</label>
+        <input type="number" id="editAmount" min="1" step="0.01">
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn btn-primary" id="savePaymentBtn">
+          💾 حفظ التعديلات
+        </button>
+        <button class="btn btn-outline" id="cancelPaymentBtn">
+          ❌ إلغاء
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/payments.js"></script>
+</body>
+
+</html>

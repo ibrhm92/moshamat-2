@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صرف المساهمات - مساهمات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">💸</span>
+      <h1>صرف المساهمات</h1>
+      <p class="subtitle">إدارة وتتبع المصروفات الشهرية</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link active">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- Monthly Summary -->
+    <div class="main-card fade-in">
+      <div class="section-title">📊 ملخص الشهر الحالي</div>
+      
+      <div class="form-group">
+        <label>📅 اختر الشهر</label>
+        <select id="monthSelect">
+          <option value="يناير 2026">يناير 2026</option>
+          <option value="فبراير 2026">فبراير 2026</option>
+          <option value="مارس 2026" selected>مارس 2026</option>
+          <option value="أبريل 2026">أبريل 2026</option>
+          <option value="مايو 2026">مايو 2026</option>
+          <option value="يونيو 2026">يونيو 2026</option>
+          <option value="يوليو 2026">يوليو 2026</option>
+          <option value="أغسطس 2026">أغسطس 2026</option>
+          <option value="سبتمبر 2026">سبتمبر 2026</option>
+          <option value="أكتوبر 2026">أكتوبر 2026</option>
+          <option value="نوفمبر 2026">نوفمبر 2026</option>
+          <option value="ديسمبر 2026">ديسمبر 2026</option>
+        </select>
+      </div>
+      
+      <div class="stats-strip">
+        <div class="stat-card">
+          <div class="stat-label">إجمالي المساهمات</div>
+          <div class="stat-value" id="totalContributions">0 جنيه</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">إجمالي المصروفات</div>
+          <div class="stat-value" id="totalExpenses">0 جنيه</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">الرصيد المتبقي</div>
+          <div class="stat-value" id="remainingBalance">0 جنيه</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Expense -->
+    <div class="main-card fade-in">
+      <div class="section-title">➕ إضافة مصروف جديد</div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>📝 وصف المصروف</label>
+          <input type="text" id="expenseDescription" placeholder="مثال: إيجار المقر، كهرباء، مياه...">
+        </div>
+        
+        <div class="form-group">
+          <label>💵 المبلغ</label>
+          <input type="number" id="expenseAmount" placeholder="أدخل المبلغ" min="0" step="0.01">
+        </div>
+        
+        <div class="form-group">
+          <label>📅 التاريخ</label>
+          <input type="date" id="expenseDate">
+        </div>
+        
+        <div class="form-group">
+          <label>🏷️ النوع</label>
+          <select id="expenseCategory">
+            <option value="إيجار">🏢 إيجار</option>
+            <option value="كهرباء">💡 كهرباء</option>
+            <option value="مياه">💧 مياه</option>
+            <option value="إنترنت">🌐 إنترنت</option>
+            <option value="صيانة">🔧 صيانة</option>
+            <option value="مواد">📦 مواد</option>
+            <option value="أخرى">📝 أخرى</option>
+            <option value="__custom__">➕ نوع مخصص</option>
+          </select>
+          <div class="custom-category-input" id="customCategoryGroup" style="display:none;margin-top:8px;">
+            <input type="text" id="customCategoryInput" placeholder="أدخل نوع المصروف المخصص..." style="width:100%">
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>📋 ملاحظات (اختياري)</label>
+        <textarea id="expenseNotes" placeholder="أي ملاحظات إضافية..." rows="3" style="width:100%;resize:vertical;"></textarea>
+      </div>
+      
+      <button class="btn btn-primary" id="addExpenseBtn">
+        ➕ إضافة المصروف
+      </button>
+    </div>
+
+    <!-- Filter Expenses -->
+    <div class="main-card fade-in">
+      <div class="section-title">🔍 فلترة المصروفات</div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>🏷️ النوع</label>
+          <select id="filterCategory">
+            <option value="">جميع الأنواع</option>
+            <option value="إيجار">🏢 إيجار</option>
+            <option value="كهرباء">💡 كهرباء</option>
+            <option value="مياه">💧 مياه</option>
+            <option value="إنترنت">🌐 إنترنت</option>
+            <option value="صيانة">🔧 صيانة</option>
+            <option value="مواد">📦 مواد</option>
+            <option value="أخرى">📝 أخرى</option>
+            <option value="__custom__">➕ أنواع مخصصة</option>
+          </select>
+          <div class="custom-category-input" id="filterCustomGroup" style="display:none;margin-top:8px;">
+            <input type="text" id="filterCustomInput" placeholder="ابحث عن نوع مخصص..." style="width:100%">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>📅 من تاريخ</label>
+          <input type="date" id="filterDateFrom">
+        </div>
+        
+        <div class="form-group">
+          <label>📅 إلى تاريخ</label>
+          <input type="date" id="filterDateTo">
+        </div>
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn btn-primary" id="applyFiltersBtn">
+          🔍 تطبيق الفلاتر
+        </button>
+        <button class="btn btn-outline" id="resetFiltersBtn">
+          🔄 إعادة تعيين
+        </button>
+      </div>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="main-card fade-in">
+      <div class="section-title">📋 قائمة المصروفات</div>
+      
+      <div class="table-wrap">
+        <table id="expensesTable">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>الوصف</th>
+              <th>النوع</th>
+              <th>المبلغ</th>
+              <th>الملاحظات</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="expensesBody">
+            <tr>
+              <td colspan="6" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Category Statistics -->
+    <div class="main-card fade-in">
+      <div class="section-title">📊 إحصائيات المصروفات حسب النوع</div>
+      
+      <div class="btn-row" style="margin-bottom:20px">
+        <button class="btn btn-primary" id="printExpensesBtn">
+          🖨️ طباعة إحصائيات الصرف
+        </button>
+        <button class="btn btn-outline" id="exportExpensesBtn">
+          📥 تصدير Excel
+        </button>
+      </div>
+      
+      <div class="table-wrap">
+        <table id="categoryStatsTable">
+          <thead>
+            <tr>
+              <th>النوع</th>
+              <th>عدد المصروفات</th>
+              <th>إجمالي المبلغ</th>
+              <th>نسبة من الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody id="categoryStatsBody">
+            <tr>
+              <td colspan="4" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <!-- Edit Expense Modal -->
+  <div class="modal-overlay" id="editExpenseModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ تعديل المصروف</div>
+        <button class="btn-close" id="closeEditExpenseBtn">✕</button>
+      </div>
+      
+      <div class="form-group">
+        <label>📝 وصف المصروف</label>
+        <input type="text" id="editExpenseDescription">
+      </div>
+      
+      <div class="form-group">
+        <label>💵 المبلغ</label>
+        <input type="number" id="editExpenseAmount" min="0" step="0.01">
+      </div>
+      
+      <div class="form-group">
+        <label>📅 التاريخ</label>
+        <input type="date" id="editExpenseDate">
+      </div>
+      
+      <div class="form-group">
+        <label>🏷️ النوع</label>
+        <select id="editExpenseCategory">
+          <option value="إيجار">🏢 إيجار</option>
+          <option value="كهرباء">💡 كهرباء</option>
+          <option value="مياه">💧 مياه</option>
+          <option value="إنترنت">🌐 إنترنت</option>
+          <option value="صيانة">🔧 صيانة</option>
+          <option value="مواد">📦 مواد</option>
+          <option value="أخرى">📝 أخرى</option>
+          <option value="__custom__">➕ نوع مخصص</option>
+        </select>
+        <div class="custom-category-input" id="editCustomGroup" style="display:none;margin-top:8px;">
+          <input type="text" id="editCustomInput" placeholder="أدخل نوع المصروف المخصص..." style="width:100%">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>📋 ملاحظات</label>
+        <textarea id="editExpenseNotes" rows="3" style="width:100%;resize:vertical;"></textarea>
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn btn-primary" id="saveExpenseBtn">
+          💾 حفظ التعديلات
+        </button>
+        <button class="btn btn-outline" id="cancelExpenseBtn">
+          ❌ إلغاء
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/expenses.js"></script>
+</body>
+
+</html>

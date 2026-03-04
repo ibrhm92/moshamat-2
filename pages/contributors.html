@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المساهمون - مساهمات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">👥</span>
+      <h1>المساهمون</h1>
+      <p class="subtitle">إدارة أسماء المساهمين</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link active">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- Add Contributor Section -->
+    <div class="main-card fade-in">
+      <div class="section-title">➕ إضافة مساهم جديد</div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>👤 الاسم الكامل</label>
+          <input type="text" id="newContributorName" placeholder="أدخل اسم المساهم">
+        </div>
+        
+        <div class="form-group">
+          <label>📱 رقم الهاتف</label>
+          <input type="tel" id="newContributorPhone" placeholder="01xxxxxxxxx" pattern="01[0-9]{9}" maxlength="11">
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" id="addContributorBtn">
+        ➕ إضافة مساهم
+      </button>
+    </div>
+
+    <!-- Contributors List -->
+    <div class="main-card fade-in">
+      <div class="section-title">👥 قائمة المساهمين</div>
+      
+      <!-- Search Bar -->
+      <div class="search-bar" style="margin-bottom:20px">
+        <input type="text" id="searchContributors" placeholder="🔍 بحث عن مساهم..." style="width:100%;padding:12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:14px;">
+      </div>
+      
+      <div class="table-wrap">
+        <table id="contributorsTable">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الهاتف</th>
+              <th>عدد المساهمات</th>
+              <th>إجمالي المدفوعات</th>
+              <th>متوسط المبلغ</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="contributorsBody">
+            <tr>
+              <td colspan="6" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">✏️ تعديل بيانات المساهم</div>
+        <button class="btn-close" id="closeEditBtn">✕</button>
+      </div>
+      
+      <div class="form-group">
+        <label>👤 الاسم</label>
+        <input type="text" id="editContributorName" style="width:100%">
+      </div>
+      
+      <div class="form-group">
+        <label>📱 الهاتف</label>
+        <input type="tel" id="editContributorPhone" style="width:100" pattern="01[0-9]{9}" maxlength="11">
+      </div>
+      
+      <div class="btn-row">
+        <button class="btn btn-primary" id="saveEditBtn">
+          💾 حفظ التعديلات
+        </button>
+        <button class="btn btn-outline" id="cancelEditBtn">
+          ❌ إلغاء
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/contributors.js"></script>
+</body>
+
+</html>

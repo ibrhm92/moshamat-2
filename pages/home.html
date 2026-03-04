@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مساهمات - الصفحة الرئيسية</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">💰</span>
+      <h1>مساهمات</h1>
+      <p class="subtitle">نظام إدارة وتتبع المدفوعات الجماعية</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link active">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- Stats Strip -->
+    <div class="stats-strip">
+      <div class="stat-card green fade-in">
+        <div class="val" id="totalAmount">0</div>
+        <div class="lbl">💵 إجمالي الشهر (جنيه)</div>
+      </div>
+      <div class="stat-card amber fade-in">
+        <div class="val" id="unpaidCount">0</div>
+        <div class="lbl">❌ لم يدفعوا بعد</div>
+      </div>
+    </div>
+
+    <!-- Recent Contributions -->
+    <div class="main-card fade-in">
+      <div class="section-title">📝 أحدث المساهمات</div>
+      <div class="table-wrap">
+        <table id="recentTable">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الهاتف</th>
+              <th>الشهر</th>
+              <th>المبلغ</th>
+              <th>التاريخ</th>
+            </tr>
+          </thead>
+          <tbody id="recentBody">
+            <tr>
+              <td colspan="5" class="empty">جاري التحميل...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="add-contribution.html" class="btn btn-primary">
+        ➕ إضافة مساهمة جديدة
+      </a>
+      <a href="statistics.html" class="btn btn-amber">
+        📊 عرض الإحصائيات
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/main.js"></script>
+</body>
+
+</html>

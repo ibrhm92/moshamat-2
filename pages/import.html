@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استيراد البيانات - مساهمات</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <span class="logo-icon">📥</span>
+      <h1>استيراد البيانات</h1>
+      <p class="subtitle">استيراد مساهمات من ملف Excel</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="main-nav">
+      <a href="home.html" class="nav-link">
+        🏠 الرئيسية
+      </a>
+      <a href="contributors.html" class="nav-link">
+        👥 المساهمون
+      </a>
+      <a href="add-contribution.html" class="nav-link">
+        ➕ إضافة مساهمة
+      </a>
+      <a href="payments.html" class="nav-link">
+        💰 المساهمات
+      </a>
+      <a href="expenses.html" class="nav-link">
+        💸 الصرف
+      </a>
+      <a href="statistics.html" class="nav-link">
+        📊 الإحصائيات
+      </a>
+      <a href="import.html" class="nav-link active">
+        📥 استيراد
+      </a>
+      <a href="whatsapp.html" class="nav-link">
+        💬 رسائل الواتس
+      </a>
+      <a href="settings.html" class="nav-link">
+        ⚙️ الإعدادات
+      </a>
+    </nav>
+
+    <!-- Excel Guide -->
+    <div class="main-card fade-in">
+      <div class="section-title">📋 شكل ملف Excel المطلوب</div>
+      <div class="guide-desc">يجب أن يحتوي الملف على الأعمدة التالية بالترتيب:</div>
+      
+      <div class="excel-preview">
+        <table class="excel-table">
+          <thead>
+            <tr>
+              <th>A - الاسم</th>
+              <th>B - الشهر</th>
+              <th>C - المبلغ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>أحمد محمد</td>
+              <td>مارس 2026</td>
+              <td>500</td>
+            </tr>
+            <tr>
+              <td>فاطمة علي</td>
+              <td>مارس 2026</td>
+              <td>500</td>
+            </tr>
+            <tr>
+              <td>خالد إبراهيم</td>
+              <td>فبراير 2026</td>
+              <td>500</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="guide-notes">
+        <div class="guide-note">⚠️ الصف الأول يجب أن يكون رؤوس الأعمدة (كما بالجدول)</div>
+        <div class="guide-note">📅 الشهر بالعربي مع السنة مثل: <strong>مارس 2026</strong></div>
+        <div class="guide-note">💵 المبلغ أرقام فقط بدون رموز العملة</div>
+        <div class="guide-note">✅ يمكن استيراد عدة أشهر في نفس الوقت</div>
+      </div>
+      
+      <button class="btn btn-outline" id="downloadTemplateBtn">
+        ⬇️ تحميل ملف نموذج فارغ
+      </button>
+    </div>
+
+    <!-- Month Filter -->
+    <div class="main-card fade-in">
+      <div class="section-title">📅 تحديد الشهر المراد استيراده</div>
+      <div class="import-month-box">
+        <div class="import-month-label">📅 تحديد الشهر المراد استيراده</div>
+        <div class="import-month-row">
+          <div style="flex:1">
+            <select id="importMonthFilter">
+              <option value="">-- كل الشهور الموجودة في الملف --</option>
+              <option value="يناير 2026">يناير 2026</option>
+              <option value="فبراير 2026">فبراير 2026</option>
+              <option value="مارس 2026">مارس 2026</option>
+              <option value="أبريل 2026">أبريل 2026</option>
+              <option value="مايو 2026">مايو 2026</option>
+              <option value="يونيو 2026">يونيو 2026</option>
+              <option value="يوليو 2026">يوليو 2026</option>
+              <option value="أغسطس 2026">أغسطس 2026</option>
+              <option value="سبتمبر 2026">سبتمبر 2026</option>
+              <option value="أكتوبر 2026">أكتوبر 2026</option>
+              <option value="نوفمبر 2026">نوفمبر 2026</option>
+              <option value="ديسمبر 2026">ديسمبر 2026</option>
+              <option value="يناير 2027">يناير 2027</option>
+              <option value="فبراير 2027">فبراير 2027</option>
+              <option value="مارس 2027">مارس 2027</option>
+            </select>
+          </div>
+          <div id="importMonthBadge" style="display:none">
+            <span class="badge badge-green">محدد</span>
+          </div>
+        </div>
+        <div class="import-month-hint">
+          💡 يمكنك استيراد كل الأشهر أو تحديد شهر معين
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload Area -->
+    <div class="main-card fade-in">
+      <div class="section-title">📁 رفع الملف</div>
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">اضغط لاختيار ملف أو اسحب وأفلت هنا</div>
+        <div class="upload-sub">xlsx / xls / csv</div>
+        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none">
+      </div>
+      
+      <button class="btn btn-outline" id="chooseFileBtn" style="margin-top:16px">
+        📁 اختيار ملف
+      </button>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="main-card fade-in" id="previewSection" style="display:none">
+      <div class="section-title">👀 معاينة البيانات</div>
+      
+      <div class="preview-header">
+        <span>السجلات الصحيحة:</span>
+        <span id="previewCount" class="badge badge-green">0</span>
+      </div>
+      
+      <div class="table-wrap">
+        <table id="previewTable">
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الشهر</th>
+              <th>المبلغ</th>
+              <th>التاريخ</th>
+            </tr>
+          </thead>
+          <tbody id="previewBody">
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="importErrors" class="import-errors" style="display:none"></div>
+      
+      <div class="btn-row">
+        <button class="btn btn-primary" id="confirmImportBtn">
+          ✅ تأكيد الاستيراد
+        </button>
+        <button class="btn btn-outline" id="cancelImportBtn">
+          ❌ إلغاء
+        </button>
+      </div>
+      
+      <div class="progress-bar-wrap" id="progressWrap" style="display:none">
+        <div class="progress-bar" id="progressBar"></div>
+        <div id="progressText" style="text-align:center;margin-top:8px;font-size:12px;color:var(--text-muted)">0%</div>
+      </div>
+      
+      <div id="importResult" style="display:none"></div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-text">
+      🔒 البيانات محفوظة على Firebase Firestore
+    </p>
+  </div>
+
+  <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/import.js"></script>
+</body>
+
+</html>
