@@ -116,7 +116,8 @@ function handleDrop(e) {
 
 function applyMonthFilter() {
   const filter = document.getElementById('importMonthFilter').value;
-  if (filter === 'all') {
+  // Fix: handle both '' and 'all' as "show all"
+  if (!filter || filter === 'all' || filter === '') {
     importRows = [...allValidRows];
     if (document.getElementById('importMonthBadge')) {
       document.getElementById('importMonthBadge').style.display = 'none';
@@ -296,21 +297,34 @@ async function processExcelFile(file) {
 
 async function loadSheetJS() {
   if (window.XLSX) return window.XLSX;
-  return new Promise((res, rej) => {
-    const existing = document.querySelector('script[src*="xlsx"]');
-    if (existing) {
-      const wait = setInterval(() => {
-        if (window.XLSX) { clearInterval(wait); res(window.XLSX); }
-      }, 100);
-      setTimeout(() => { clearInterval(wait); rej(new Error('انتهت مهلة تحميل مكتبة Excel')); }, 10000);
-      return;
+  
+  const cdnUrls = [
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ];
+
+  for (const url of cdnUrls) {
+    try {
+      await new Promise((res, rej) => {
+        // Remove any previously failed script
+        const old = document.querySelector(`script[src="${url}"]`);
+        if (old) old.remove();
+
+        const s = document.createElement('script');
+        s.src = url;
+        s.onload = () => {
+          if (window.XLSX) res(window.XLSX);
+          else rej(new Error('فشل تهيئة المكتبة'));
+        };
+        s.onerror = () => rej(new Error(`فشل تحميل: ${url}`));
+        document.head.appendChild(s);
+      });
+      if (window.XLSX) return window.XLSX;
+    } catch (e) {
+      console.warn('SheetJS CDN failed, trying next...', e.message);
     }
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-    s.onload = () => { if (window.XLSX) res(window.XLSX); else rej(new Error('فشل تهيئة المكتبة')); };
-    s.onerror = () => rej(new Error('فشل تحميل مكتبة Excel - تحقق من الاتصال'));
-    document.head.appendChild(s);
-  });
+  }
+  throw new Error('فشل تحميل مكتبة Excel - تحقق من الاتصال بالإنترنت');
 }
 
 function renderPreview(valid, errors) {
@@ -505,6 +519,7 @@ async function confirmImport() {
     else updateStats();
 
     showToast(`✅ استُورد ${done} سجل بنجاح`);
+    } // close resultEl if block
   } catch (error) {
     console.error('Import error:', error);
     showToast('❌ فشل الاستيراد: ' + error.message, true);
