@@ -1,4 +1,4 @@
-// WhatsApp messages page
+       // WhatsApp messages page
 document.addEventListener('DOMContentLoaded', () => {
   // Wait for Firebase to be ready before binding events
   waitForFirebase().then(() => {
@@ -300,6 +300,46 @@ function closePreview() {
   document.body.style.overflow = '';
 }
 
+/**
+ * تنسيق رقم الهاتف ليكون متوافقاً مع wa.me
+ * يدعم الأرقام المصرية والدولية
+ */
+function formatPhoneNumber(phone) {
+  if (!phone) return null;
+  
+  // إزالة كل حاجة مش رقم أو + في الأول
+  let cleaned = phone.replace(/[^\d+]/g, '');
+  
+  // لو بيبدأ بـ + شيل الـ +
+  cleaned = cleaned.replace(/^\+/, '');
+  
+  // لو فاضي بعد التنظيف
+  if (!cleaned) return null;
+  
+  // لو بيبدأ بـ 00 (بعض الناس بيكتب 0020...)
+  if (cleaned.startsWith('00')) {
+    cleaned = cleaned.substring(2);
+  }
+  
+  // أرقام مصرية: لو بدأت بـ 0 وطولها 11 → ابعت كود مصر 20
+  if (cleaned.startsWith('0') && cleaned.length === 11) {
+    cleaned = '20' + cleaned.substring(1);
+  }
+  
+  // لو الرقم 10 أرقام فقط (بدون أي كود) → افترض مصري
+  if (cleaned.length === 10 && !cleaned.startsWith('20')) {
+    cleaned = '20' + cleaned;
+  }
+  
+  // تحقق أن الرقم النهائي معقول (بين 10 و15 رقم)
+  if (cleaned.length < 10 || cleaned.length > 15) {
+    console.warn('رقم غير صالح بعد التنسيق:', cleaned);
+    return null;
+  }
+  
+  return cleaned;
+}
+
 function confirmSend() {
   const messageText = document.getElementById('messageText').value.trim();
   const contributorsWithPhone = unpaidContributors.filter(c => c.phone && c.phone.trim() !== '');
@@ -316,10 +356,16 @@ function confirmSend() {
   contributorsWithPhone.forEach((contributor, index) => {
     try {
       const encodedMessage = encodeURIComponent(messageText);
-      const phoneNumber = contributor.phone.trim();
+      const phoneNumber = formatPhoneNumber(contributor.phone.trim());
+      
+      if (!phoneNumber) {
+        console.warn('Invalid phone number for:', contributor.name, contributor.phone);
+        failCount++;
+        return;
+      }
       
       // Create individual WhatsApp URL for private message
-      const whatsappUrl = `https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=${encodedMessage}`;
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
       
       // Open WhatsApp in new tab with slight delay to avoid overwhelming the browser
       setTimeout(() => {
