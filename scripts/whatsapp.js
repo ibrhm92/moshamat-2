@@ -127,7 +127,7 @@ async function loadUnpaidContributors() {
   // Show loading state
   const tbody = document.getElementById('unpaidBody');
   if (tbody) {
-    tbody.innerHTML = '<tr><td colspan="3" class="empty">جاري البحث عن غير الدافعين...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">جاري البحث عن غير الدافعين...</td></tr>';
   }
   
   // Check if data is available
@@ -157,7 +157,7 @@ async function loadUnpaidContributors() {
   if (allContributors.length === 0) {
     console.error('No contributors found after loading');
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="3" class="empty">لا يوجد مساهمون في النظام</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">لا يوجد مساهمون في النظام</td></tr>';
     }
     return;
   }
@@ -270,7 +270,6 @@ function updateSelectedCount() {
   const countEl = document.getElementById('selectedCount');
   if (countEl) countEl.textContent = checked.length;
   
-  // تحديث حالة checkbox الكل
   const selectAllCb = document.getElementById('selectAllCheckbox');
   if (selectAllCb) {
     selectAllCb.checked = checked.length === checkboxes.length && checkboxes.length > 0;
@@ -302,7 +301,7 @@ function getSelectedContributors() {
   return selected;
 }
 
-
+function updateMessageTemplate() {
   const messageText = document.getElementById('messageText');
   const monthSelect = document.getElementById('monthSelect');
   const selectedMonth = monthSelect ? monthSelect.value : 'مارس 2026';
@@ -338,7 +337,6 @@ function showPreview() {
     return;
   }
   
-  // Update preview content
   document.getElementById('previewText').textContent = messageText;
   
   const listHtml = selectedContributors.map(c => 
@@ -355,7 +353,6 @@ function showPreview() {
     </div>
   `;
   
-  // Show modal
   document.getElementById('previewModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -367,41 +364,15 @@ function closePreview() {
 
 /**
  * تنسيق رقم الهاتف ليكون متوافقاً مع wa.me
- * يدعم الأرقام المصرية والدولية
  */
 function formatPhoneNumber(phone) {
   if (!phone) return null;
-  
-  // إزالة كل حاجة مش رقم أو + في الأول
-  let cleaned = phone.replace(/[^\d+]/g, '');
-  
-  // لو بيبدأ بـ + شيل الـ +
-  cleaned = cleaned.replace(/^\+/, '');
-  
-  // لو فاضي بعد التنظيف
+  let cleaned = phone.replace(/[^\d+]/g, '').replace(/^\+/, '');
   if (!cleaned) return null;
-  
-  // لو بيبدأ بـ 00 (بعض الناس بيكتب 0020...)
-  if (cleaned.startsWith('00')) {
-    cleaned = cleaned.substring(2);
-  }
-  
-  // أرقام مصرية: لو بدأت بـ 0 وطولها 11 → ابعت كود مصر 20
-  if (cleaned.startsWith('0') && cleaned.length === 11) {
-    cleaned = '20' + cleaned.substring(1);
-  }
-  
-  // لو الرقم 10 أرقام فقط (بدون أي كود) → افترض مصري
-  if (cleaned.length === 10 && !cleaned.startsWith('20')) {
-    cleaned = '20' + cleaned;
-  }
-  
-  // تحقق أن الرقم النهائي معقول (بين 10 و15 رقم)
-  if (cleaned.length < 10 || cleaned.length > 15) {
-    console.warn('رقم غير صالح بعد التنسيق:', cleaned);
-    return null;
-  }
-  
+  if (cleaned.startsWith('00')) cleaned = cleaned.substring(2);
+  if (cleaned.startsWith('0') && cleaned.length === 11) cleaned = '20' + cleaned.substring(1);
+  if (cleaned.length === 10 && !cleaned.startsWith('20')) cleaned = '20' + cleaned;
+  if (cleaned.length < 10 || cleaned.length > 15) return null;
   return cleaned;
 }
 
@@ -414,7 +385,6 @@ function confirmSend() {
     return;
   }
   
-  // Send individual private messages
   let successCount = 0;
   let failCount = 0;
   
@@ -424,38 +394,26 @@ function confirmSend() {
       const phoneNumber = formatPhoneNumber(contributor.phone.trim());
       
       if (!phoneNumber) {
-        console.warn('Invalid phone number for:', contributor.name, contributor.phone);
+        console.warn('رقم غير صالح:', contributor.name, contributor.phone);
         failCount++;
         return;
       }
       
-      // Create individual WhatsApp URL for private message
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-      
-      // Open WhatsApp in new tab with slight delay to avoid overwhelming the browser
-      setTimeout(() => {
-        window.open(whatsappUrl, '_blank');
-      }, index * 200); // 200ms delay between each message
-      
+      setTimeout(() => { window.open(whatsappUrl, '_blank'); }, index * 200);
       successCount++;
     } catch (error) {
-      console.error('Error sending to', contributor.name, error);
+      console.error('خطأ في الإرسال لـ', contributor.name, error);
       failCount++;
     }
   });
   
   closePreview();
   
-  // Show result
-  if (successCount > 0) {
-    showToast(`✅ تم فتح ${successCount} رسالة واتس خاصة`);
-  }
+  if (successCount > 0) showToast(`✅ تم فتح ${successCount} رسالة واتس خاصة`);
+  if (failCount > 0) showToast(`❌ فشل في إرسال ${failCount} رسالة`, true);
   
-  if (failCount > 0) {
-    showToast(`❌ فشل في إرسال ${failCount} رسالة`, true);
-  }
-  
-  console.log(`Sent ${successCount} private WhatsApp messages for ${currentMonth}`);
+  console.log(`Sent ${successCount} WhatsApp messages for ${currentMonth}`);
 }
 
 // Make functions globally accessible
