@@ -105,11 +105,32 @@
           <div class="stat-value" id="phoneCount">0</div>
         </div>
       </div>
+
+      <!-- شريط التحديد -->
+      <div id="selectionBar" style="display:flex;align-items:center;justify-content:space-between;background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.25);border-radius:10px;padding:10px 14px;margin-bottom:12px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button onclick="selectAllWithPhone()" class="btn btn-outline" style="font-size:12px;padding:5px 12px;">
+            ✅ تحديد أصحاب الهاتف
+          </button>
+          <button onclick="selectAll()" class="btn btn-outline" style="font-size:12px;padding:5px 12px;">
+            ☑️ تحديد الكل
+          </button>
+          <button onclick="deselectAll()" class="btn btn-outline" style="font-size:12px;padding:5px 12px;">
+            ⬜ إلغاء الكل
+          </button>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--primary,#3498db);">
+          ✉️ محدد: <span id="selectedCount">0</span>
+        </div>
+      </div>
       
       <div class="table-wrap">
         <table id="unpaidTable">
           <thead>
             <tr>
+              <th style="width:40px;">
+                <input type="checkbox" id="selectAllCheckbox" title="تحديد الكل" style="cursor:pointer;width:16px;height:16px;">
+              </th>
               <th>الاسم</th>
               <th>الهاتف</th>
               <th>الحالة</th>
