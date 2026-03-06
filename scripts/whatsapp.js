@@ -1,4 +1,4 @@
-       // WhatsApp messages page
+// WhatsApp messages page
 document.addEventListener('DOMContentLoaded', () => {
   // Wait for Firebase to be ready before binding events
   waitForFirebase().then(() => {
@@ -224,26 +224,85 @@ function renderUnpaidTable() {
   if (!tbody) return;
   
   if (unpaidContributors.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="empty">جميع المساهمين دفعوا لهذا الشهر 🎉</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">جميع المساهمين دفعوا لهذا الشهر 🎉</td></tr>';
     return;
   }
   
-  tbody.innerHTML = unpaidContributors.map(contributor => {
+  tbody.innerHTML = unpaidContributors.map((contributor, index) => {
     const hasPhone = contributor.phone && contributor.phone.trim() !== '';
     const statusIcon = hasPhone ? '📱' : '❌';
     const statusText = hasPhone ? 'لديه هاتف' : 'لا يوجد هاتف';
+    const checkboxDisabled = !hasPhone ? 'disabled title="لا يوجد رقم هاتف"' : '';
     
     return `
-      <tr>
+      <tr id="row-${index}" style="${!hasPhone ? 'opacity:0.5;' : ''}">
+        <td style="text-align:center;">
+          <input type="checkbox" 
+            class="contributor-checkbox" 
+            data-index="${index}" 
+            ${hasPhone ? 'checked' : checkboxDisabled}
+            style="cursor:${hasPhone ? 'pointer' : 'not-allowed'};width:16px;height:16px;"
+            onchange="updateSelectedCount()">
+        </td>
         <td>${contributor.name}</td>
         <td>${hasPhone ? contributor.phone : '-'}</td>
         <td>${statusIcon} ${statusText}</td>
       </tr>
     `;
   }).join('');
+  
+  // ربط checkbox الكل
+  const selectAllCb = document.getElementById('selectAllCheckbox');
+  if (selectAllCb) {
+    selectAllCb.checked = true;
+    selectAllCb.onchange = function() {
+      if (this.checked) selectAllWithPhone();
+      else deselectAll();
+    };
+  }
+  
+  updateSelectedCount();
 }
 
-function updateMessageTemplate() {
+function updateSelectedCount() {
+  const checkboxes = document.querySelectorAll('.contributor-checkbox:not([disabled])');
+  const checked = document.querySelectorAll('.contributor-checkbox:not([disabled]):checked');
+  const countEl = document.getElementById('selectedCount');
+  if (countEl) countEl.textContent = checked.length;
+  
+  // تحديث حالة checkbox الكل
+  const selectAllCb = document.getElementById('selectAllCheckbox');
+  if (selectAllCb) {
+    selectAllCb.checked = checked.length === checkboxes.length && checkboxes.length > 0;
+    selectAllCb.indeterminate = checked.length > 0 && checked.length < checkboxes.length;
+  }
+}
+
+function selectAllWithPhone() {
+  document.querySelectorAll('.contributor-checkbox:not([disabled])').forEach(cb => cb.checked = true);
+  updateSelectedCount();
+}
+
+function selectAll() {
+  document.querySelectorAll('.contributor-checkbox:not([disabled])').forEach(cb => cb.checked = true);
+  updateSelectedCount();
+}
+
+function deselectAll() {
+  document.querySelectorAll('.contributor-checkbox').forEach(cb => { if (!cb.disabled) cb.checked = false; });
+  updateSelectedCount();
+}
+
+function getSelectedContributors() {
+  const selected = [];
+  document.querySelectorAll('.contributor-checkbox:not([disabled]):checked').forEach(cb => {
+    const index = parseInt(cb.dataset.index);
+    if (unpaidContributors[index]) selected.push(unpaidContributors[index]);
+  });
+  return selected;
+}
+
+
   const messageText = document.getElementById('messageText');
   const monthSelect = document.getElementById('monthSelect');
   const selectedMonth = monthSelect ? monthSelect.value : 'مارس 2026';
@@ -272,19 +331,25 @@ function showPreview() {
     return;
   }
   
-  const contributorsWithPhone = unpaidContributors.filter(c => c.phone && c.phone.trim() !== '');
+  const selectedContributors = getSelectedContributors();
   
-  if (contributorsWithPhone.length === 0) {
-    showToast('❌ لا يوجد مساهمون لديهم أرقام هواتف', true);
+  if (selectedContributors.length === 0) {
+    showToast('❌ لم تحدد أي مساهم لإرسال الرسالة إليه', true);
     return;
   }
   
   // Update preview content
   document.getElementById('previewText').textContent = messageText;
+  
+  const listHtml = selectedContributors.map(c => 
+    `<div style="padding:4px 0;border-bottom:1px solid #eee;">📱 ${c.name} — ${c.phone}</div>`
+  ).join('');
+  
   document.getElementById('previewStats').innerHTML = `
-    <div>📱 سيتم إرسال ${contributorsWithPhone.length} رسالة خاصة (private)</div>
-    <div>👥 إجمالي غير الدافعين: ${unpaidContributors.length} مساهم</div>
-    <div>❌ بدون هاتف: ${unpaidContributors.length - contributorsWithPhone.length} مساهم</div>
+    <div style="margin-bottom:10px;">📤 سيتم إرسال <strong>${selectedContributors.length}</strong> رسالة خاصة للمساهمين التاليين:</div>
+    <div style="max-height:180px;overflow-y:auto;font-size:13px;border:1px solid #eee;border-radius:8px;padding:8px;">
+      ${listHtml}
+    </div>
     <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
       💡 كل رسالة ستُرسل بشكل خاص للمساهم المنفرد
     </div>
@@ -342,10 +407,10 @@ function formatPhoneNumber(phone) {
 
 function confirmSend() {
   const messageText = document.getElementById('messageText').value.trim();
-  const contributorsWithPhone = unpaidContributors.filter(c => c.phone && c.phone.trim() !== '');
+  const selectedContributors = getSelectedContributors();
   
-  if (contributorsWithPhone.length === 0) {
-    showToast('❌ لا يوجد مساهمون لديهم أرقام هواتف', true);
+  if (selectedContributors.length === 0) {
+    showToast('❌ لم تحدد أي مساهم', true);
     return;
   }
   
@@ -353,7 +418,7 @@ function confirmSend() {
   let successCount = 0;
   let failCount = 0;
   
-  contributorsWithPhone.forEach((contributor, index) => {
+  selectedContributors.forEach((contributor, index) => {
     try {
       const encodedMessage = encodeURIComponent(messageText);
       const phoneNumber = formatPhoneNumber(contributor.phone.trim());
@@ -383,15 +448,14 @@ function confirmSend() {
   
   // Show result
   if (successCount > 0) {
-    showToast(`✅ تم فتح ${successCount} رسالة واتس خاصة (private)`);
+    showToast(`✅ تم فتح ${successCount} رسالة واتس خاصة`);
   }
   
   if (failCount > 0) {
     showToast(`❌ فشل في إرسال ${failCount} رسالة`, true);
   }
   
-  // Log the action
-  console.log(`Sent ${successCount} private WhatsApp messages to individual contributors for ${currentMonth}`);
+  console.log(`Sent ${successCount} private WhatsApp messages for ${currentMonth}`);
 }
 
 // Make functions globally accessible
@@ -399,3 +463,8 @@ window.loadUnpaidContributors = loadUnpaidContributors;
 window.showPreview = showPreview;
 window.closePreview = closePreview;
 window.confirmSend = confirmSend;
+window.selectAll = selectAll;
+window.selectAllWithPhone = selectAllWithPhone;
+window.deselectAll = deselectAll;
+window.updateSelectedCount = updateSelectedCount;
+window.getSelectedContributors = getSelectedContributors;
