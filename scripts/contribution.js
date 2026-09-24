@@ -35,6 +35,7 @@ function bindContributionEvents() {
   const nameSelect = document.getElementById('nameSelect');
   if (nameSelect) {
     nameSelect.addEventListener('change', handleNameSelect);
+    initNameSearch(nameSelect);
   }
   
   // Month select change - update name dropdown
@@ -73,6 +74,44 @@ function bindContributionEvents() {
       manualUnpaidSection.style.display = includeUnpaid.checked ? 'block' : 'none';
     });
   }
+}
+
+function normalizeArabic(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+    .replace(/ـ/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/[ىيئ]/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function initNameSearch(nameSelect) {
+  if (typeof TomSelect === 'undefined' || nameSelect.tomselect) return;
+
+  new TomSelect(nameSelect, {
+    allowEmptyOption: true,
+    create: false,
+    maxItems: 1,
+    placeholder: 'اكتب اسم المساهم للبحث...',
+    score(search) {
+      const normalizedSearch = normalizeArabic(search);
+
+      return item => {
+        if (!normalizedSearch) return 1;
+
+        const normalizedName = normalizeArabic(item.text);
+        const position = normalizedName.indexOf(normalizedSearch);
+
+        if (position === -1) return 0;
+        return 1 - (position / Math.max(normalizedName.length, 1)) * 0.5;
+      };
+    }
+  });
 }
 
 function handleNameSelect() {
@@ -213,10 +252,15 @@ async function submitPayment() {
     const savedData = { name: contributorName, month, amount, phone };
 
     // Reset form
-    document.getElementById('nameSelect').value = '';
+    const nameSelect = document.getElementById('nameSelect');
+    if (nameSelect.tomselect) {
+      nameSelect.tomselect.clear(true);
+    } else {
+      nameSelect.value = '';
+    }
     document.getElementById('newNameInput').value = '';
     document.getElementById('phoneInput').value = '';
-    document.getElementById('amountInput').value = '';
+    document.getElementById('amountInput').value = '100';
     document.getElementById('newNameGroup').classList.remove('show');
 
     // Update stats
