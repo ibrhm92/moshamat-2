@@ -196,16 +196,29 @@ function populateNameDropdown() {
       .filter(contributor => !paidContributors.has(contributor.id))
       .sort((a, b) => a.name.localeCompare(b.name, 'ar')); // Sort alphabetically in Arabic
     
-    // Clear existing options except the first two
-    while (select.options.length > 2) select.remove(2);
-    
-    // Add unpaid contributors only
-    unpaidContributors.forEach(contributor => {
-      const option = document.createElement('option');
-      option.value = contributor.id;
-      option.textContent = contributor.name;
-      select.appendChild(option);
-    });
+    const options = [
+      { value: '', text: '-- اختر اسم --' },
+      { value: '__new__', text: '+ إضافة اسم جديد' },
+      ...unpaidContributors.map(contributor => ({
+        value: contributor.id,
+        text: contributor.name
+      }))
+    ];
+
+    if (select.tomselect) {
+      select.tomselect.clear(true);
+      select.tomselect.clearOptions();
+      select.tomselect.addOptions(options);
+      select.tomselect.refreshOptions(false);
+    } else {
+      select.replaceChildren();
+      options.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = item.text;
+        select.appendChild(option);
+      });
+    }
     
     console.log(`Loaded ${unpaidContributors.length} unpaid contributors for ${selectedMonth}`);
   });
