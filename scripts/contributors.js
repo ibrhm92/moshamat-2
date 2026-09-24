@@ -68,19 +68,19 @@ async function loadContributorsList() {
   const tbody = document.getElementById('contributorsBody');
   if (!tbody) return;
   
-  tbody.innerHTML = '<tr><td colspan="6" class="empty">جاري التحميل...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">جاري التحميل...</td></tr>';
   
   // Check if Firebase is available
   if (typeof firebase === 'undefined' || !firebase.firestore) {
     console.error('Firebase not available in loadContributorsList');
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">❌ Firebase غير متاحر - جاري إعادة المحاولة...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ Firebase غير متاحر - جاري إعادة المحاولة...</td></tr>';
     
     // Retry after 2 seconds
     setTimeout(() => {
       if (typeof firebase !== 'undefined' && firebase.firestore) {
         loadContributorsList();
       } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty">❌ فشل تحميل Firebase</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ فشل تحميل Firebase</td></tr>';
       }
     }, 2000);
     return;
@@ -96,12 +96,13 @@ async function loadContributorsList() {
       console.log('Loading contributors from Firebase...');
       const snapshot = await firebase.firestore().collection('contributors').get();
       const contributors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      allContributors = contributors;
       console.log(`Loaded ${contributors.length} contributors from Firebase`);
       renderContributorsTable(contributors);
     }
   } catch (error) {
     console.error('Error loading contributors:', error);
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">❌ خطأ في تحميل البيانات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ خطأ في تحميل البيانات</td></tr>';
   }
 }
 
@@ -110,7 +111,7 @@ function renderContributorsTable(contributors) {
   if (!tbody) return;
   
   if (contributors.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">لا يوجد مساهمون</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">لا يوجد مساهمون</td></tr>';
     return;
   }
   
@@ -118,15 +119,19 @@ function renderContributorsTable(contributors) {
     const stats = getContributorStats(contributor.id);
     
     return `
-      <tr>
+      <tr style="${contributor.archived === true ? 'opacity:0.65' : ''}">
         <td>${contributor.name}</td>
         <td>${contributor.phone || '-'}</td>
+        <td>${contributor.archived === true ? '<span class="badge badge-red">مؤرشف</span>' : '<span class="badge badge-green">نشط</span>'}</td>
         <td>${stats.count}</td>
         <td>${stats.total.toLocaleString('ar-EG')} جنيه</td>
         <td>${stats.count > 0 ? (stats.total / stats.count).toLocaleString('ar-EG') : 0} جنيه</td>
         <td>
           <button class="btn btn-outline" onclick="editContributor('${contributor.id}')" style="padding:6px 12px;font-size:12px;margin:2px">
             ✏️ تعديل
+          </button>
+          <button class="btn btn-outline" onclick="toggleContributorArchive('${contributor.id}')" style="padding:6px 12px;font-size:12px;margin:2px;border-color:var(--warning);color:var(--warning)">
+            ${contributor.archived === true ? '♻️ إلغاء الأرشفة' : '📦 أرشفة'}
           </button>
           <button class="btn btn-outline" onclick="deleteContributor('${contributor.id}')" style="padding:6px 12px;font-size:12px;margin:2px;border-color:var(--danger);color:var(--danger)">
             🗑️ حذف
@@ -135,6 +140,39 @@ function renderContributorsTable(contributors) {
       </tr>
     `;
   }).join('');
+}
+
+async function toggleContributorArchive(contributorId) {
+  const contributor = allContributors.find(c => c.id === contributorId);
+  if (!contributor) return;
+
+  const shouldArchive = contributor.archived !== true;
+  const action = shouldArchive ? 'أرشفة' : 'إلغاء أرشفة';
+  const message = shouldArchive
+    ? `هل تريد أرشفة "${contributor.name}"؟\n\nسيختفي من قوائم المساهمين النشطين وإحصائيات الأعضاء ورسائل واتساب، وستظل كل مساهماته القديمة محفوظة.`
+    : `هل تريد إعادة "${contributor.name}" إلى المساهمين النشطين؟`;
+
+  if (!confirm(message)) return;
+
+  try {
+    if (window._demoMode) {
+      contributor.archived = shouldArchive;
+    } else {
+      await firebase.firestore().collection('contributors').doc(contributorId).update({
+        archived: shouldArchive,
+        archivedAt: shouldArchive
+          ? firebase.firestore.FieldValue.serverTimestamp()
+          : firebase.firestore.FieldValue.delete()
+      });
+      contributor.archived = shouldArchive;
+    }
+
+    showToast(`✅ تم ${action} المساهم بنجاح`);
+    loadContributorsList();
+  } catch (error) {
+    console.error('Error toggling contributor archive:', error);
+    showToast(`❌ تعذر ${action} المساهم: ${error.message}`, true);
+  }
 }
 
 function getContributorStats(contributorId) {
@@ -173,13 +211,14 @@ async function addNewContributor() {
     if (window._demoMode) {
       // Add to demo data
       const newId = 'demo_' + Date.now();
-      allContributors.push({ id: newId, name, phone });
+      allContributors.push({ id: newId, name, phone, archived: false });
       showToast('✅ تم إضافة المساهم (وضع تجريبي)');
     } else {
       // Add to Firebase
       await firebase.firestore().collection('contributors').add({
         name,
         phone,
+        archived: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       showToast('✅ تم إضافة المساهم بنجاح');
@@ -326,3 +365,4 @@ function filterContributors() {
 // Make functions globally accessible
 window.editContributor = editContributor;
 window.deleteContributor = deleteContributor;
+window.toggleContributorArchive = toggleContributorArchive;
