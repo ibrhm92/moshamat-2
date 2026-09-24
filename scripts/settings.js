@@ -118,7 +118,7 @@ function exportAllData() {
   rows.push(['الاسم', 'الهاتف', 'إجمالي المدفوعات', 'عدد المساهمات']);
   
   const contributorStats = {};
-  allContributors.forEach(contributor => {
+  getActiveContributors().forEach(contributor => {
     contributorStats[contributor.id] = {
       name: contributor.name,
       phone: contributor.phone,
