@@ -81,8 +81,14 @@ function updateHomeStats() {
   const totalAmount = monthPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   
   // Calculate unpaid count
-  const paidIds = new Set(monthPayments.map(p => p.contributorId));
-  const unpaidCount = allContributors.length - paidIds.size;
+  const activeContributors = getActiveContributors();
+  const activeIds = new Set(activeContributors.map(c => c.id));
+  const paidIds = new Set(
+    monthPayments
+      .filter(p => activeIds.has(p.contributorId))
+      .map(p => p.contributorId)
+  );
+  const unpaidCount = activeContributors.length - paidIds.size;
   
   // Update UI
   totalAmountEl.textContent = totalAmount.toLocaleString('ar-EG');

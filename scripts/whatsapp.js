@@ -173,7 +173,7 @@ async function loadUnpaidContributors() {
   const paidContributorIds = new Set(monthPayments.map(p => p.contributorId));
   console.log('Paid contributor IDs:', Array.from(paidContributorIds));
   
-  unpaidContributors = allContributors.filter(contributor => 
+  unpaidContributors = getActiveContributors().filter(contributor =>
     !paidContributorIds.has(contributor.id)
   );
   
@@ -210,7 +210,7 @@ function updateUnpaidStats() {
   const unpaidCountEl = document.getElementById('unpaidCount');
   const phoneCountEl = document.getElementById('phoneCount');
   
-  const totalContributors = allContributors.length;
+  const totalContributors = getActiveContributors().length;
   const unpaidCount = unpaidContributors.length;
   const phoneCount = unpaidContributors.filter(c => c.phone && c.phone.trim() !== '').length;
   

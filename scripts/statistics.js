@@ -127,7 +127,12 @@ function renderFilteredStats() {
     : allPayments;
   
   const totalAmount = filteredPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-  const contributors = new Set(filteredPayments.map(p => p.contributorId));
+  const activeIds = new Set(getActiveContributors().map(c => c.id));
+  const contributors = new Set(
+    filteredPayments
+      .filter(p => activeIds.has(p.contributorId))
+      .map(p => p.contributorId)
+  );
   
   console.log(`Filtered stats: ${filteredPayments.length} payments, ${contributors.size} contributors, total: ${totalAmount}`);
   
@@ -151,6 +156,8 @@ function renderMonthlyStats() {
   
   // Group payments by month
   const monthlyData = {};
+  const activeIds = new Set(getActiveContributors().map(c => c.id));
+
   allPayments.forEach(payment => {
     if (!monthlyData[payment.month]) {
       monthlyData[payment.month] = {
@@ -160,7 +167,9 @@ function renderMonthlyStats() {
       };
     }
     monthlyData[payment.month].total += Number(payment.amount) || 0;
-    monthlyData[payment.month].contributors.add(payment.contributorId);
+    if (activeIds.has(payment.contributorId)) {
+      monthlyData[payment.month].contributors.add(payment.contributorId);
+    }
     monthlyData[payment.month].count++;
   });
   
@@ -204,7 +213,7 @@ function renderContributorStats() {
   
   // Calculate stats for each contributor
   const contributorStats = {};
-  allContributors.forEach(contributor => {
+  getActiveContributors().forEach(contributor => {
     contributorStats[contributor.id] = {
       name: contributor.name,
       phone: contributor.phone,

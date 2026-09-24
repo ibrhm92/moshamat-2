@@ -163,9 +163,15 @@ async function loadData(force = false) {
 function updateStats() {
   const monthPayments = allPayments.filter(p => p.month === currentMonth);
   const totalAmount = monthPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-  
-  const paidIds = new Set(monthPayments.map(p => p.contributorId));
-  const unpaidCount = allContributors.length - paidIds.size;
+
+  const activeContributors = getActiveContributors();
+  const activeIds = new Set(activeContributors.map(c => c.id));
+  const paidIds = new Set(
+    monthPayments
+      .filter(p => activeIds.has(p.contributorId))
+      .map(p => p.contributorId)
+  );
+  const unpaidCount = activeContributors.length - paidIds.size;
   
   // Update UI elements
   const totalEl = document.getElementById('totalAmount');
@@ -173,6 +179,14 @@ function updateStats() {
   
   if (totalEl) totalEl.textContent = totalAmount.toLocaleString('ar-EG');
   if (unpaidEl) unpaidEl.textContent = unpaidCount;
+}
+
+function isContributorActive(contributor) {
+  return contributor && contributor.archived !== true;
+}
+
+function getActiveContributors() {
+  return allContributors.filter(isContributorActive);
 }
 
 // Populate name dropdown
@@ -192,20 +206,33 @@ function populateNameDropdown() {
         .map(p => p.contributorId)
     );
     
-    const unpaidContributors = allContributors
+    const unpaidContributors = getActiveContributors()
       .filter(contributor => !paidContributors.has(contributor.id))
       .sort((a, b) => a.name.localeCompare(b.name, 'ar')); // Sort alphabetically in Arabic
     
-    // Clear existing options except the first two
-    while (select.options.length > 2) select.remove(2);
-    
-    // Add unpaid contributors only
-    unpaidContributors.forEach(contributor => {
-      const option = document.createElement('option');
-      option.value = contributor.id;
-      option.textContent = contributor.name;
-      select.appendChild(option);
-    });
+    const options = [
+      { value: '', text: '-- اختر اسم --' },
+      { value: '__new__', text: '+ إضافة اسم جديد' },
+      ...unpaidContributors.map(contributor => ({
+        value: contributor.id,
+        text: contributor.name
+      }))
+    ];
+
+    if (select.tomselect) {
+      select.tomselect.clear(true);
+      select.tomselect.clearOptions();
+      select.tomselect.addOptions(options);
+      select.tomselect.refreshOptions(false);
+    } else {
+      select.replaceChildren();
+      options.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = item.text;
+        select.appendChild(option);
+      });
+    }
     
     console.log(`Loaded ${unpaidContributors.length} unpaid contributors for ${selectedMonth}`);
   });

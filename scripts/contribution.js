@@ -35,6 +35,7 @@ function bindContributionEvents() {
   const nameSelect = document.getElementById('nameSelect');
   if (nameSelect) {
     nameSelect.addEventListener('change', handleNameSelect);
+    initNameSearch(nameSelect);
   }
   
   // Month select change - update name dropdown
@@ -73,6 +74,44 @@ function bindContributionEvents() {
       manualUnpaidSection.style.display = includeUnpaid.checked ? 'block' : 'none';
     });
   }
+}
+
+function normalizeArabic(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+    .replace(/ـ/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/[ىيئ]/g, 'ي')
+    .replace(/ؤ/g, 'و')
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function initNameSearch(nameSelect) {
+  if (typeof TomSelect === 'undefined' || nameSelect.tomselect) return;
+
+  new TomSelect(nameSelect, {
+    allowEmptyOption: true,
+    create: false,
+    maxItems: 1,
+    placeholder: 'اكتب اسم المساهم للبحث...',
+    score(search) {
+      const normalizedSearch = normalizeArabic(search);
+
+      return item => {
+        if (!normalizedSearch) return 1;
+
+        const normalizedName = normalizeArabic(item.text);
+        const position = normalizedName.indexOf(normalizedSearch);
+
+        if (position === -1) return 0;
+        return 1 - (position / Math.max(normalizedName.length, 1)) * 0.5;
+      };
+    }
+  });
 }
 
 function handleNameSelect() {
@@ -166,7 +205,7 @@ async function submitPayment() {
     if (window._demoMode) {
       if (nameVal === '__new__') {
         contributorId = 'demo_' + Date.now();
-        allContributors.push({ id: contributorId, name: newName, phone: phone });
+        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false });
         contributorName = newName;
       } else {
         contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
@@ -183,11 +222,12 @@ async function submitPayment() {
         const docRef = await firebase.firestore().collection('contributors').add({
           name: newName,
           phone: phone,
+          archived: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         contributorId = docRef.id;
         contributorName = newName;
-        allContributors.push({ id: contributorId, name: newName, phone: phone });
+        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false });
       } else {
         contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
         // Update phone number for existing contributor
@@ -213,10 +253,15 @@ async function submitPayment() {
     const savedData = { name: contributorName, month, amount, phone };
 
     // Reset form
-    document.getElementById('nameSelect').value = '';
+    const nameSelect = document.getElementById('nameSelect');
+    if (nameSelect.tomselect) {
+      nameSelect.tomselect.clear(true);
+    } else {
+      nameSelect.value = '';
+    }
     document.getElementById('newNameInput').value = '';
     document.getElementById('phoneInput').value = '';
-    document.getElementById('amountInput').value = '';
+    document.getElementById('amountInput').value = '100';
     document.getElementById('newNameGroup').classList.remove('show');
 
     // Update stats
@@ -238,12 +283,18 @@ async function sendWhatsApp(saved) {
 
   const monthPay = allPayments.filter(p => p.month === month);
   const totalMonth = monthPay.reduce((s, p) => s + (Number(p.amount) || 0), 0);
-  const paidIds = new Set(monthPay.map(p => p.contributorId));
-  const totalMembers = allContributors.length;
+  const activeContributors = getActiveContributors();
+  const activeIds = new Set(activeContributors.map(c => c.id));
+  const paidIds = new Set(
+    monthPay
+      .filter(p => activeIds.has(p.contributorId))
+      .map(p => p.contributorId)
+  );
+  const totalMembers = activeContributors.length;
   const paidCount = paidIds.size;
   const unpaidCount = totalMembers - paidCount;
   const includeUnpaid = document.getElementById('includeUnpaid').checked;
-  const unpaidNames = allContributors
+  const unpaidNames = activeContributors
     .filter(c => !paidIds.has(c.id))
     .map(c => `• ${c.name}`)
     .join('\n');
