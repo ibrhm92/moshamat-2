@@ -423,13 +423,15 @@ async function confirmImport() {
               allContributors.push({
                 id: contributorId,
                 name: row.name.trim(),
-                phone: ''
+                phone: '',
+                archived: false
               });
               console.log(`Created new contributor (demo): ${row.name} (${contributorId})`);
             } else {
               const contributorRef = await firebase.firestore().collection('contributors').add({
                 name: row.name.trim(),
                 phone: '',
+                archived: false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
               });
               contributorId = contributorRef.id;
@@ -438,7 +440,8 @@ async function confirmImport() {
               allContributors.push({
                 id: contributorId,
                 name: row.name.trim(),
-                phone: ''
+                phone: '',
+                archived: false
               });
               
               console.log(`Created new contributor: ${row.name} (${contributorId})`);
