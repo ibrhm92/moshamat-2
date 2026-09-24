@@ -205,7 +205,7 @@ async function submitPayment() {
     if (window._demoMode) {
       if (nameVal === '__new__') {
         contributorId = 'demo_' + Date.now();
-        allContributors.push({ id: contributorId, name: newName, phone: phone });
+        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false });
         contributorName = newName;
       } else {
         contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
@@ -222,11 +222,12 @@ async function submitPayment() {
         const docRef = await firebase.firestore().collection('contributors').add({
           name: newName,
           phone: phone,
+          archived: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         contributorId = docRef.id;
         contributorName = newName;
-        allContributors.push({ id: contributorId, name: newName, phone: phone });
+        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false });
       } else {
         contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
         // Update phone number for existing contributor
@@ -282,12 +283,18 @@ async function sendWhatsApp(saved) {
 
   const monthPay = allPayments.filter(p => p.month === month);
   const totalMonth = monthPay.reduce((s, p) => s + (Number(p.amount) || 0), 0);
-  const paidIds = new Set(monthPay.map(p => p.contributorId));
-  const totalMembers = allContributors.length;
+  const activeContributors = getActiveContributors();
+  const activeIds = new Set(activeContributors.map(c => c.id));
+  const paidIds = new Set(
+    monthPay
+      .filter(p => activeIds.has(p.contributorId))
+      .map(p => p.contributorId)
+  );
+  const totalMembers = activeContributors.length;
   const paidCount = paidIds.size;
   const unpaidCount = totalMembers - paidCount;
   const includeUnpaid = document.getElementById('includeUnpaid').checked;
-  const unpaidNames = allContributors
+  const unpaidNames = activeContributors
     .filter(c => !paidIds.has(c.id))
     .map(c => `• ${c.name}`)
     .join('\n');
