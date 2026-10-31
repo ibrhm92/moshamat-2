@@ -35,6 +35,14 @@ function waitForFirebase() {
 }
 
 function bindContributorsEvents() {
+  document.getElementById('clearContributorsSearch').addEventListener('click', () => {
+    const input = document.getElementById('searchContributors');
+    input.value = ''; filterContributors(); input.focus();
+  });
+  document.getElementById('clearContributorSelection').addEventListener('click', () => {
+    document.querySelectorAll('[data-contributor-id]').forEach(box => { box.checked = false; });
+    updateReferralSelectionCount();
+  });
   document.getElementById('assignReferralBtn').addEventListener('click', assignBulkReferral);
   document.getElementById('selectVisibleContributors').addEventListener('change', event => {
     document.querySelectorAll('#contributorsBody tr').forEach(row => {
@@ -123,6 +131,7 @@ function renderContributorsTable(contributors) {
   document.dispatchEvent(new Event('contributors-updated'));
   if (contributors.length === 0) {
     tbody.innerHTML = '<tr><td colspan="9" class="empty">لا يوجد مساهمون</td></tr>';
+    filterContributors();
     return;
   }
   
@@ -363,13 +372,21 @@ async function deleteContributor(contributorId) {
 }
 
 function filterContributors() {
-  const searchTerm = document.getElementById('searchContributors').value.toLowerCase();
-  const rows = document.querySelectorAll('#contributorsBody tr');
-  
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(searchTerm) ? '' : 'none';
+  const searchTerm = document.getElementById('searchContributors').value;
+  const byId = new Map(allContributors.map(c => [c.id, c]));
+  let total = 0, visible = 0;
+  document.querySelectorAll('#contributorsBody tr').forEach(row => {
+    const box = row.querySelector('[data-contributor-id]');
+    if (!box) return;
+    const contributor = byId.get(box.dataset.contributorId);
+    const matches = !!contributor && ContributionSearch.score({ value: contributor.id, text: contributor.name, phone: contributor.phone }, searchTerm) > 0;
+    row.style.display = matches ? '' : 'none';
+    total++;
+    if (matches) visible++;
   });
+  document.getElementById('contributorsSearchCount').textContent = visible
+    ? `النتائج: ${visible} من ${total} — التحديد محفوظ عند تغيير البحث`
+    : 'لا توجد أسماء مطابقة للبحث';
   updateReferralSelectionCount();
 }
 
@@ -381,7 +398,9 @@ window.toggleContributorArchive = toggleContributorArchive;
 
 function updateReferralSelectionCount() {
   const boxes = [...document.querySelectorAll('[data-contributor-id]')];
-  document.getElementById('referralSelectionCount').textContent = `المحدد: ${boxes.filter(b => b.checked).length}`;
+  const selected = boxes.filter(b => b.checked);
+  const hiddenSelected = selected.filter(b => b.closest('tr').style.display === 'none').length;
+  document.getElementById('referralSelectionCount').textContent = `المحدد إجماليًا: ${selected.length}` + (hiddenSelected ? ` — منها ${hiddenSelected} خارج نتائج البحث` : '');
   const visible = boxes.filter(b => b.closest('tr').style.display !== 'none');
   const toggle = document.getElementById('selectVisibleContributors');
   toggle.checked = visible.length > 0 && visible.every(b => b.checked);

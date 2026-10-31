@@ -80,14 +80,16 @@
     <div class="main-card fade-in">
       <div class="section-title">👥 قائمة المساهمين</div>
       
-      <!-- Search Bar -->
-      <div class="search-bar" style="margin-bottom:20px">
-        <input type="text" id="searchContributors" placeholder="🔍 بحث عن مساهم..." style="width:100%;padding:12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:14px;">
-      </div>
-      
       <div class="referral-bulk">
+        <div class="form-group referral-member-search">
+          <label for="searchContributors">🔍 ابحث عن المساهمين لتحديدهم</label>
+          <input type="search" id="searchContributors" placeholder="اكتب الاسم أو أجزاء منه بأي ترتيب" autocomplete="off">
+          <span id="contributorsSearchCount" role="status" aria-live="polite"></span>
+        </div>
+        <button type="button" class="btn btn-outline" id="clearContributorsSearch">مسح البحث</button>
         <label><input type="checkbox" id="selectVisibleContributors"> تحديد كل الظاهرين</label>
         <span id="referralSelectionCount">المحدد: ٠</span>
+        <button type="button" class="btn btn-outline" id="clearContributorSelection">إلغاء تحديد الكل</button>
         <div class="form-group"><label for="bulkContributorReferral">👥 دخل عن طريق / المسؤول عنه (اختياري)</label><select id="bulkContributorReferral" data-referral-select><option value="">بدون مسؤول</option></select></div>
         <button type="button" class="btn btn-primary" id="assignReferralBtn">💾 تعيين المسؤول للمحددين</button>
         <p>اختيار «بدون مسؤول» يزيل الربط فقط، دون تعديل أي مدفوعات.</p>
@@ -151,6 +153,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+  <script src="../scripts/contribution-search.js"></script>
   <script src="../scripts/referrals-model.js"></script>
   <script src="../scripts/firebase-config.js"></script>
   <script src="../scripts/referrals.js"></script>

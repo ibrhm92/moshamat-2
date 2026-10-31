@@ -30,7 +30,13 @@
       && (!owner || (owner === '__none__' ? !c.referredById : c.referredById === owner)))
       .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
   }
-  const api = { normalize, score, eligible };
+  function ownerPhone(owner) {
+    let phone = normalize(owner?.phone).replace(/[\s()+-]/g, '');
+    if (/^00201\d{9}$/.test(phone)) phone = phone.slice(2);
+    if (/^201\d{9}$/.test(phone)) phone = '0' + phone.slice(2);
+    return /^01\d{9}$/.test(phone) ? phone : '';
+  }
+  const api = { normalize, score, eligible, ownerPhone };
   root.ContributionSearch = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

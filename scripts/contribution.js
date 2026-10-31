@@ -30,7 +30,16 @@ function waitForFirebase() {
   });
 }
 
+let previousContributionSelection = '';
+let manualContributorPhone = '';
 function bindContributionEvents() {
+  document.getElementById('newNameReferral').addEventListener('change', syncOwnerPhone);
+  document.getElementById('useOwnerPhone').addEventListener('change', event => {
+    const input = document.getElementById('phoneInput');
+    if (event.target.checked) manualContributorPhone = input.value;
+    else input.value = manualContributorPhone;
+    syncOwnerPhone();
+  });
   const ownerFilter = document.getElementById('contributionOwnerFilter');
   ownerFilter.addEventListener('change', () => populateNameDropdown(true));
   document.getElementById('clearOwnerFilter').addEventListener('click', () => {
@@ -134,29 +143,39 @@ function refreshContributionOwnerFilter() {
 }
 document.addEventListener('contributors-updated', refreshContributionOwnerFilter);
 
+function syncOwnerPhone() {
+  const checkbox = document.getElementById('useOwnerPhone');
+  const input = document.getElementById('phoneInput');
+  const owner = allContributors.find(c => c.id === selectedReferral('newNameReferral'));
+  const phone = ContributionSearch.ownerPhone(owner);
+  const isNew = document.getElementById('nameSelect').value === '__new__';
+  input.readOnly = isNew && checkbox.checked;
+  if (input.readOnly) input.value = phone;
+  document.getElementById('ownerPhoneHint').textContent = !owner
+    ? 'اختر المسؤول أولًا لاستخدام رقمه، أو ألغِ الخيار وأدخل رقمًا مستقلًا.'
+    : !phone ? 'المسؤول ليس لديه رقم موبايل مصري صحيح. عدّل رقمه أو أدخل رقمًا مستقلًا للمساهم.'
+    : checkbox.checked && isNew ? `سيُحفظ رقم ${owner.name} (${phone}) لهذا المساهم. يمكنك تغييره لاحقًا من بيانات المساهم.`
+    : `رقم المسؤول ${owner.name}: ${phone}`;
+}
+document.addEventListener('contributors-updated', syncOwnerPhone);
+
 function handleNameSelect() {
   const nameSelect = document.getElementById('nameSelect');
   const newNameGroup = document.getElementById('newNameGroup');
   const phoneInput = document.getElementById('phoneInput');
-  
+  const checkbox = document.getElementById('useOwnerPhone');
   if (nameSelect.value === '__new__') {
     newNameGroup.classList.add('show');
-    phoneInput.value = ''; // Clear phone for new contributor
-  } else if (nameSelect.value) {
-    newNameGroup.classList.remove('show');
-    
-    // Find contributor and populate phone if exists
-    const contributor = allContributors.find(c => c.id === nameSelect.value);
-    if (contributor && contributor.phone) {
-      phoneInput.value = contributor.phone;
-      console.log(`Populated phone for ${contributor.name}: ${contributor.phone}`);
-    } else {
-      phoneInput.value = ''; // Clear if no phone exists
+    if (previousContributionSelection !== '__new__') {
+      checkbox.checked = false; manualContributorPhone = ''; phoneInput.value = '';
     }
   } else {
     newNameGroup.classList.remove('show');
-    phoneInput.value = ''; // Clear if no selection
+    checkbox.checked = false; manualContributorPhone = '';
+    phoneInput.value = allContributors.find(c => c.id === nameSelect.value)?.phone || '';
   }
+  previousContributionSelection = nameSelect.value;
+  syncOwnerPhone();
 }
 
 async function submitAndSend() {
@@ -189,6 +208,10 @@ async function submitPayment() {
   const newName = document.getElementById('newNameInput').value.trim();
   const referredById = selectedReferral('newNameReferral');
   const month = document.getElementById('monthSelect').value;
+  if (nameVal === '__new__' && document.getElementById('useOwnerPhone').checked) {
+    syncOwnerPhone();
+    if (!referredById || !document.getElementById('phoneInput').value) throw new Error('اختر مسؤولًا برقم موبايل صحيح أو ألغِ استخدام رقم المسؤول');
+  }
   const phone = document.getElementById('phoneInput').value.trim();
   const amount = parseFloat(document.getElementById('amountInput').value);
 
@@ -283,7 +306,11 @@ async function submitPayment() {
       nameSelect.value = '';
     }
     document.getElementById('newNameInput').value = '';
+    document.getElementById('useOwnerPhone').checked = false;
+    manualContributorPhone = ''; previousContributionSelection = '';
+    document.getElementById('phoneInput').readOnly = false;
     resetReferral('newNameReferral');
+    syncOwnerPhone();
     document.getElementById('phoneInput').value = '';
     document.getElementById('amountInput').value = '100';
     document.getElementById('newNameGroup').classList.remove('show');
