@@ -95,6 +95,8 @@ function useDemoMode() {
   window._demoMode = true;
   updateStats();
   populateNameDropdown();
+  window._referralDataLoaded = true;
+  document.dispatchEvent(new Event('contributors-updated'));
   showToast('⚠️ وضع التجريب - البيانات مؤقتة ومثال فقط (فشل الاتصال بـ Firebase)');
 }
 
@@ -102,6 +104,8 @@ function useDemoMode() {
 async function loadData(force = false) {
   if (window._demoMode) {
     console.log('Skipping loadData - in demo mode');
+    window._referralDataLoaded = true;
+    document.dispatchEvent(new Event('contributors-updated'));
     return;
   }
   
@@ -127,12 +131,15 @@ async function loadData(force = false) {
     
     updateStats();
     populateNameDropdown();
+    window._referralDataLoaded = true;
+    document.dispatchEvent(new Event('contributors-updated'));
     console.log('✅ Data loaded successfully from Firebase');
     
     if (force) {
       showToast('✅ تم تحديث البيانات');
     }
   } catch (e) {
+    document.dispatchEvent(new Event('data-load-failed'));
     console.error('Error loading data from Firebase:', e);
     console.error('Full error details:', {
       code: e.code,

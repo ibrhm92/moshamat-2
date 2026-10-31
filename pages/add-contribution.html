@@ -10,6 +10,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css">
   <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/referrals.css">
   <style>
     .ts-wrapper {
       direction: rtl;
@@ -74,6 +75,7 @@
       <a href="settings.html" class="nav-link">
         ⚙️ الإعدادات
       </a>
+      <a href="referrals.html" class="nav-link">👥 المسؤولون والمجموعات</a>
     </nav>
 
     <!-- Main Form Card -->
@@ -94,7 +96,7 @@
           </select>
           <div class="new-name-input" id="newNameGroup">
             <label>✏️ الاسم الجديد</label>
-            <input type="text" id="newNameInput" placeholder="اكتب الاسم كاملاً">
+            <input type="text" id="newNameInput" placeholder="اكتب الاسم كاملاً"><div class="form-group"><label for="newNameReferral">👥 دخل عن طريق / المسؤول عنه (اختياري)</label><select id="newNameReferral" data-referral-select><option value="">بدون مسؤول</option></select></div>
           </div>
         </div>
 
@@ -173,7 +175,9 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+  <script src="../scripts/referrals-model.js"></script>
   <script src="../scripts/firebase-config.js"></script>
+  <script src="../scripts/referrals.js"></script>
   <script src="../scripts/contribution.js"></script>
 </body>
 

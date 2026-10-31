@@ -1,0 +1,14 @@
+.ts-wrapper { direction: rtl; width: 100%; }
+.ts-wrapper.single .ts-control, .ts-control, .ts-dropdown {
+  background: #132238; border: 1px solid rgba(255,255,255,.15); color: var(--text); font-family: 'Cairo', sans-serif;
+}
+.ts-control input, .ts-dropdown .option { color: var(--text); font-family: inherit; }
+.ts-dropdown .active { background: #214c42; color: var(--text); }
+.referral-bulk { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; padding: 16px; border: 1px solid #34465c; border-radius: 12px; }
+.referral-bulk .form-group { flex: 1 1 240px; margin: 0; }
+.referral-bulk p, .referral-note { color: var(--text-muted); font-size: 13px; }
+.referral-bulk p { width: 100%; }
+.referral-checks { display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 0; }
+#referralMessage { width: 100%; min-height: 320px; padding: 14px; background: #132238; color: var(--text); border: 1px solid #34465c; border-radius: 12px; font: inherit; resize: vertical; }
+#referralMembers { padding-inline-start: 24px; line-height: 2; }
+[hidden] { display: none !important; }
