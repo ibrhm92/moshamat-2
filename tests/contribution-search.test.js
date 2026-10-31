@@ -30,3 +30,7 @@ test('exact name then prefix rank before scattered matches', () => {
   assert.ok(score('محمد علي') > score('محمد علي حسن'));
   assert.ok(score('محمد علي حسن') > score('محمد أحمد علي'));
 });
+test('responsible mobile numbers are copied as valid local Egyptian numbers', () => {
+  for (const value of ['01012345678', '+20 1012345678', '00201012345678', '٠١٠١٢٣٤٥٦٧٨']) assert.equal(search.ownerPhone({ phone: value }), '01012345678');
+  for (const owner of [undefined, {}, { phone: 'bad' }, { phone: '123' }]) assert.equal(search.ownerPhone(owner), '');
+});

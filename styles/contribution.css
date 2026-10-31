@@ -33,3 +33,6 @@
 .contribution-page .new-name-input { padding: 14px; border: 1px solid #426886; border-radius: 12px; background: #142d43; }
 @media (max-width: 600px) { .contribution-filters { padding: 14px; } .contribution-filters > .btn { width: 100%; } }
 .contribution-page .ts-control input:focus { border: 0; outline: none; box-shadow: none; }
+.owner-phone-choice { display: flex; align-items: center; gap: 10px; margin-top: 12px; cursor: pointer; }
+.contribution-page .owner-phone-choice input { width: 18px; height: 18px; padding: 0; margin: 0; flex: 0 0 18px; accent-color: #63d7ad; }
+.contribution-page #phoneInput[readonly] { background: #193c39; border-color: #63d7ad; color: #e1fff3; }
