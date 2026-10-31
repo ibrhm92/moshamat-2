@@ -11,33 +11,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css">
   <link rel="stylesheet" href="../styles/main.css">
   <link rel="stylesheet" href="../styles/referrals.css">
-  <style>
-    .ts-wrapper {
-      direction: rtl;
-    }
-
-    .ts-wrapper.single .ts-control,
-    .ts-dropdown {
-      background: #132238;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: var(--text);
-      font-family: 'Cairo', sans-serif;
-    }
-
-    .ts-wrapper.single .ts-control input,
-    .ts-dropdown .option {
-      color: var(--text);
-      font-family: 'Cairo', sans-serif;
-    }
-
-    .ts-dropdown .active {
-      background: rgba(46, 204, 113, 0.18);
-      color: var(--text);
-    }
-  </style>
+  <link rel="stylesheet" href="../styles/contribution.css">
 </head>
 
-<body>
+<body class="contribution-page">
   <div class="container">
     <!-- Header -->
     <header>
@@ -82,27 +59,10 @@
     <div class="main-card fade-in">
       <div class="section-title">📝 تسجيل مساهمة جديدة</div>
       
-      <div style="background:rgba(52, 152, 219, 0.1);border:1px solid rgba(52, 152, 219, 0.3);border-radius:10px;padding:12px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
-        💡 <strong>ملاحظة:</strong> قائمة الأسماء تعرض فقط المساهمين الذين لم يدفعوا بعد في الشهر المحدد، مرتبة أبجدياً. إذا لم تجد الاسم، يمكنك إضافة اسم جديد.
-      </div>
-
-      <div class="form-grid">
-        <!-- Contributor Name -->
+      <p class="contribution-hint">القائمة تعرض من لم يدفعوا في الشهر المختار فقط. لو الاسم مش ظاهر، راجع الشهر والمسؤول قبل إضافة شخص جديد.</p>
+      <div class="contribution-filters">
         <div class="form-group">
-          <label>👤 اسم المساهم</label>
-          <select id="nameSelect">
-            <option value="">-- اختر اسم --</option>
-            <option value="__new__">+ إضافة اسم جديد</option>
-          </select>
-          <div class="new-name-input" id="newNameGroup">
-            <label>✏️ الاسم الجديد</label>
-            <input type="text" id="newNameInput" placeholder="اكتب الاسم كاملاً"><div class="form-group"><label for="newNameReferral">👥 دخل عن طريق / المسؤول عنه (اختياري)</label><select id="newNameReferral" data-referral-select><option value="">بدون مسؤول</option></select></div>
-          </div>
-        </div>
-
-        <!-- Month -->
-        <div class="form-group">
-          <label>📅 الشهر</label>
+          <label for="monthSelect">📅 شهر المساهمة</label>
           <select id="monthSelect">
             <option value="يناير 2026">يناير 2026</option>
             <option value="فبراير 2026">فبراير 2026</option>
@@ -117,6 +77,29 @@
             <option value="نوفمبر 2026">نوفمبر 2026</option>
             <option value="ديسمبر 2026">ديسمبر 2026</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label for="contributionOwnerFilter">👥 تصفية حسب المسؤول</label>
+          <select id="contributionOwnerFilter"><option value="">كل المسؤولين</option><option value="__none__">بدون مسؤول</option></select>
+        </div>
+        <button type="button" id="clearOwnerFilter" class="btn btn-outline">عرض الكل</button>
+        <p id="nameFilterSummary" role="status" aria-live="polite">جاري تحميل المساهمين...</p>
+      </div>
+
+      <div class="form-grid">
+        <!-- Contributor Name -->
+        <div class="form-group">
+          <label for="nameSelect">👤 ابحث عن المساهم</label>
+          <select id="nameSelect">
+            <option value="">-- اختر اسم --</option>
+            <option value="__new__">+ إضافة اسم جديد</option>
+          </select>
+          <p class="contribution-search-help">اكتب أجزاء الاسم بأي ترتيب أو جزءًا من رقم الهاتف.</p>
+          <button type="button" id="addNewContributorShortcut" class="btn btn-outline contribution-new">＋ إضافة مساهم جديد</button>
+          <div class="new-name-input" id="newNameGroup">
+            <label>✏️ الاسم الجديد</label>
+            <input type="text" id="newNameInput" placeholder="اكتب الاسم كاملاً"><div class="form-group"><label for="newNameReferral">👥 دخل عن طريق / المسؤول عنه (اختياري)</label><select id="newNameReferral" data-referral-select><option value="">بدون مسؤول</option></select></div>
+          </div>
         </div>
 
         <!-- Phone Number -->
@@ -175,6 +158,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+  <script src="../scripts/contribution-search.js"></script>
   <script src="../scripts/referrals-model.js"></script>
   <script src="../scripts/firebase-config.js"></script>
   <script src="../scripts/referrals.js"></script>

@@ -197,7 +197,7 @@ function getActiveContributors() {
 }
 
 // Populate name dropdown
-function populateNameDropdown() {
+function populateNameDropdown(resetSelection = false) {
   const selects = document.querySelectorAll('#nameSelect');
   selects.forEach(select => {
     if (!select) return;
@@ -206,30 +206,26 @@ function populateNameDropdown() {
     const monthSelect = document.getElementById('monthSelect');
     const selectedMonth = monthSelect ? monthSelect.value : currentMonth;
     
-    // Find contributors who haven't paid for the selected month
-    const paidContributors = new Set(
-      allPayments
-        .filter(p => p.month === selectedMonth)
-        .map(p => p.contributorId)
-    );
-    
-    const unpaidContributors = getActiveContributors()
-      .filter(contributor => !paidContributors.has(contributor.id))
-      .sort((a, b) => a.name.localeCompare(b.name, 'ar')); // Sort alphabetically in Arabic
-    
+    const selected = resetSelection ? '' : select.value;
+    const ownerFilter = document.getElementById('contributionOwnerFilter')?.value || '';
+    const unpaidContributors = typeof ContributionSearch !== 'undefined'
+      ? ContributionSearch.eligible(allContributors, allPayments, selectedMonth, ownerFilter)
+      : getActiveContributors().filter(c => !allPayments.some(p => p.month === selectedMonth && p.contributorId === c.id))
+        .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
     const options = [
       { value: '', text: '-- اختر اسم --' },
       { value: '__new__', text: '+ إضافة اسم جديد' },
       ...unpaidContributors.map(contributor => ({
-        value: contributor.id,
-        text: contributor.name
+        value: contributor.id, text: contributor.name, phone: contributor.phone || '',
+        owner: allContributors.find(c => c.id === contributor.referredById)?.name || (contributor.referredById ? 'مسؤول غير موجود' : 'بدون مسؤول')
       }))
     ];
-
+    const nextValue = options.some(o => o.value === selected) ? selected : '';
     if (select.tomselect) {
       select.tomselect.clear(true);
       select.tomselect.clearOptions();
       select.tomselect.addOptions(options);
+      select.tomselect.setValue(nextValue, true);
       select.tomselect.refreshOptions(false);
     } else {
       select.replaceChildren();
@@ -237,10 +233,19 @@ function populateNameDropdown() {
         const option = document.createElement('option');
         option.value = item.value;
         option.textContent = item.text;
+        option.dataset.phone = item.phone || '';
+        option.dataset.owner = item.owner || '';
         select.appendChild(option);
       });
+      select.value = nextValue;
     }
-    
+    // Keep phone and new-contributor fields consistent after changing either filter.
+    if (typeof handleNameSelect === 'function') handleNameSelect();
+    const summary = document.getElementById('nameFilterSummary');
+    if (summary) summary.textContent = `المتاحون للتسجيل: ${unpaidContributors.length} — ${selectedMonth}` +
+      (ownerFilter ? ` — ${ownerFilter === '__none__' ? 'بدون مسؤول' : allContributors.find(c => c.id === ownerFilter)?.name || 'المسؤول المحدد'}` : ' — كل المسؤولين') +
+      (window._demoMode ? ' — بيانات تجريبية' : '');
+
     console.log(`Loaded ${unpaidContributors.length} unpaid contributors for ${selectedMonth}`);
   });
 }

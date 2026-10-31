@@ -1,0 +1,35 @@
+/* Contribution form: opaque dark surfaces and explicit focus/selection colors. */
+.contribution-page { color-scheme: dark; }
+.contribution-hint { padding: 14px 16px; margin-bottom: 20px; background: #142d43; border: 1px solid #426886; border-radius: 12px; color: #deebf7; line-height: 1.9; }
+.contribution-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; padding: 18px; margin-bottom: 24px; border: 1px solid #36516b; border-radius: 14px; background: #102339; }
+.contribution-filters .form-group { flex: 1 1 220px; margin: 0; min-width: 0; }
+.contribution-filters > .btn { min-height: 46px; }
+#nameFilterSummary { flex-basis: 100%; color: #b9dcf5; font-size: 13px; margin: 0; }
+.contribution-search-help { margin: 8px 0; color: #b7c8da; font-size: 12px; }
+.contribution-new { align-self: flex-start; margin: 4px 0 10px; padding: 8px 14px; font-size: 13px; }
+.contribution-page .form-group label { color: #e5edf5; }
+.contribution-page .form-group input,
+.contribution-page .form-group select,
+.contribution-page .ts-wrapper.single .ts-control,
+.contribution-page .ts-wrapper.single.input-active .ts-control,
+.contribution-page .ts-control { background: #102339; color: #f1f5f9; border: 1px solid #526b84; }
+.contribution-page .ts-control { min-height: 48px; padding: 12px 14px; border-radius: 10px; box-shadow: none; }
+.contribution-page .ts-control input { color: #f1f5f9; background: transparent; border: 0; box-shadow: none; font-family: inherit; }
+.contribution-page input::placeholder, .contribution-page .ts-control input::placeholder { color: #b7c8da; opacity: 1; }
+.contribution-page .form-group input:focus,
+.contribution-page .form-group select:focus,
+.contribution-page .ts-wrapper.focus .ts-control { border-color: #63d7ad; outline: 2px solid #63d7ad; outline-offset: 2px; box-shadow: none; }
+.contribution-page .ts-dropdown { background: #102339; color: #f1f5f9; border: 1px solid #526b84; border-radius: 10px; overflow: hidden; box-shadow: 0 12px 28px #020b17aa; }
+.contribution-page .ts-dropdown-content { max-height: 300px; }
+.contribution-page .ts-dropdown .option { padding: 12px 14px; color: #f1f5f9; border-bottom: 1px solid #29415b; }
+.contribution-page .ts-dropdown .option.active { background: #1b4c43; color: #fff; }
+.contribution-option-name { display: block; font-weight: 700; }
+.contribution-option-meta { display: block; margin-top: 4px; color: #c2d1e1; font-size: 12px; }
+.contribution-page .ts-dropdown .active .contribution-option-meta { color: #ddf8ee; }
+.contribution-page .ts-dropdown .highlight { background: #ffe39a; color: #172334; border-radius: 3px; }
+.contribution-page .ts-dropdown .no-results { padding: 16px; color: #d4dfec; line-height: 1.8; }
+.contribution-page .ts-wrapper.single .ts-control::after { border-color: #c2d1e1 transparent transparent; }
+.contribution-page .ts-wrapper.single.dropdown-active .ts-control::after { border-color: transparent transparent #c2d1e1; }
+.contribution-page .new-name-input { padding: 14px; border: 1px solid #426886; border-radius: 12px; background: #142d43; }
+@media (max-width: 600px) { .contribution-filters { padding: 14px; } .contribution-filters > .btn { width: 100%; } }
+.contribution-page .ts-control input:focus { border: 0; outline: none; box-shadow: none; }
