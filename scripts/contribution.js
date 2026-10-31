@@ -31,6 +31,20 @@ function waitForFirebase() {
 }
 
 function bindContributionEvents() {
+  const ownerFilter = document.getElementById('contributionOwnerFilter');
+  ownerFilter.addEventListener('change', () => populateNameDropdown(true));
+  document.getElementById('clearOwnerFilter').addEventListener('click', () => {
+    if (ownerFilter.tomselect) ownerFilter.tomselect.setValue('');
+    else { ownerFilter.value = ''; populateNameDropdown(true); }
+  });
+  document.getElementById('addNewContributorShortcut').addEventListener('click', () => {
+    const select = document.getElementById('nameSelect');
+    if (select.tomselect) select.tomselect.setValue('__new__');
+    else { select.value = '__new__'; handleNameSelect(); }
+    document.getElementById('newNameInput').focus();
+  });
+  refreshContributionOwnerFilter();
+
   // Name select change
   const nameSelect = document.getElementById('nameSelect');
   if (nameSelect) {
@@ -43,7 +57,7 @@ function bindContributionEvents() {
   if (monthSelect) {
     monthSelect.addEventListener('change', () => {
       console.log('Month changed, updating name dropdown...');
-      populateNameDropdown();
+      populateNameDropdown(true);
     });
   }
   
@@ -76,43 +90,49 @@ function bindContributionEvents() {
   }
 }
 
-function normalizeArabic(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
-    .replace(/ـ/g, '')
-    .replace(/[أإآٱ]/g, 'ا')
-    .replace(/[ىيئ]/g, 'ي')
-    .replace(/ؤ/g, 'و')
-    .replace(/ة/g, 'ه')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
-
 function initNameSearch(nameSelect) {
   if (typeof TomSelect === 'undefined' || nameSelect.tomselect) return;
-
+  // Read extra metadata even when data arrived before Tom Select was initialized.
+  const options = [...nameSelect.options].map(o => ({ value: o.value, text: o.text,
+    phone: o.dataset.phone || '', owner: o.dataset.owner || '' }));
   new TomSelect(nameSelect, {
-    allowEmptyOption: true,
-    create: false,
-    maxItems: 1,
-    placeholder: 'اكتب اسم المساهم للبحث...',
-    score(search) {
-      const normalizedSearch = normalizeArabic(search);
-
-      return item => {
-        if (!normalizedSearch) return 1;
-
-        const normalizedName = normalizeArabic(item.text);
-        const position = normalizedName.indexOf(normalizedSearch);
-
-        if (position === -1) return 0;
-        return 1 - (position / Math.max(normalizedName.length, 1)) * 0.5;
-      };
+    options, allowEmptyOption: false, create: false, maxItems: 1, maxOptions: null,
+    placeholder: 'ابحث بالاسم أو رقم الهاتف...',
+    searchField: ['text', 'phone'], sortField: [{ field: '$score', direction: 'desc' }, { field: 'text', direction: 'asc' }],
+    score(search) { return item => ContributionSearch.score(item, search); },
+    render: {
+      option(item, escape) {
+        if (item.value === '__new__') return '<div class="contribution-option-new">＋ إضافة مساهم جديد</div>';
+        return `<div class="contribution-option"><span class="contribution-option-name">${escape(item.text)}</span><span class="contribution-option-meta"><bdi>${escape(item.phone || 'بدون هاتف')}</bdi> · ${escape(item.owner || 'بدون مسؤول')}</span></div>`;
+      },
+      no_results() { return '<div class="no-results">لا توجد نتائج. جرّب جزءًا آخر من الاسم أو الهاتف، وراجع الشهر وفلتر المسؤول.</div>'; }
     }
   });
 }
+
+function refreshContributionOwnerFilter() {
+  const select = document.getElementById('contributionOwnerFilter');
+  if (!select) return;
+  const selected = select.value;
+  const owners = allContributors.filter(owner => allContributors.some(c => c.archived !== true && c.referredById === owner.id))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+  const options = [{ value: '', text: 'كل المسؤولين' }, { value: '__none__', text: 'بدون مسؤول' },
+    ...owners.map(owner => ({ value: owner.id, text: owner.name + (owner.archived === true ? ' (مؤرشف)' : '') }))];
+  const next = options.some(o => o.value === selected) ? selected : '';
+  if (select.tomselect) {
+    select.tomselect.clear(true); select.tomselect.clearOptions(); select.tomselect.addOptions(options);
+    select.tomselect.setValue(next, true);
+  } else {
+    select.replaceChildren(...options.map(o => new Option(o.text, o.value))); select.value = next;
+    if (typeof TomSelect !== 'undefined') new TomSelect(select, {
+      allowEmptyOption: true, create: false, maxItems: 1, maxOptions: null,
+      score(search) { const q = ContributionSearch.normalize(search); return item => ContributionSearch.normalize(item.text).includes(q) ? 1 : 0; }
+    });
+  }
+  // A removed owner must not leave the names list filtered by an obsolete ID.
+  if (selected !== next) populateNameDropdown(true);
+}
+document.addEventListener('contributors-updated', refreshContributionOwnerFilter);
 
 function handleNameSelect() {
   const nameSelect = document.getElementById('nameSelect');
