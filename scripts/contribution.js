@@ -167,6 +167,7 @@ async function submitAndSend() {
 async function submitPayment() {
   const nameVal = document.getElementById('nameSelect').value;
   const newName = document.getElementById('newNameInput').value.trim();
+  const referredById = selectedReferral('newNameReferral');
   const month = document.getElementById('monthSelect').value;
   const phone = document.getElementById('phoneInput').value.trim();
   const amount = parseFloat(document.getElementById('amountInput').value);
@@ -202,10 +203,11 @@ async function submitPayment() {
     let contributorId = nameVal;
     let contributorName = '';
 
+    if (nameVal === '__new__') await validateNewReferral(referredById);
     if (window._demoMode) {
       if (nameVal === '__new__') {
         contributorId = 'demo_' + Date.now();
-        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false });
+        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false, referredById });
         contributorName = newName;
       } else {
         contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
@@ -222,12 +224,13 @@ async function submitPayment() {
         const docRef = await firebase.firestore().collection('contributors').add({
           name: newName,
           phone: phone,
+          referredById,
           archived: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         contributorId = docRef.id;
         contributorName = newName;
-        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false });
+        allContributors.push({ id: contributorId, name: newName, phone: phone, archived: false, referredById });
       } else {
         contributorName = allContributors.find(c => c.id === nameVal)?.name || '';
         // Update phone number for existing contributor
@@ -260,6 +263,7 @@ async function submitPayment() {
       nameSelect.value = '';
     }
     document.getElementById('newNameInput').value = '';
+    resetReferral('newNameReferral');
     document.getElementById('phoneInput').value = '';
     document.getElementById('amountInput').value = '100';
     document.getElementById('newNameGroup').classList.remove('show');

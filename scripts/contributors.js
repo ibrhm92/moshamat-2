@@ -35,6 +35,16 @@ function waitForFirebase() {
 }
 
 function bindContributorsEvents() {
+  document.getElementById('assignReferralBtn').addEventListener('click', assignBulkReferral);
+  document.getElementById('selectVisibleContributors').addEventListener('change', event => {
+    document.querySelectorAll('#contributorsBody tr').forEach(row => {
+      const box = row.querySelector('[data-contributor-id]');
+      if (box && row.style.display !== 'none') box.checked = event.target.checked;
+    });
+    updateReferralSelectionCount();
+  });
+  document.getElementById('contributorsBody').addEventListener('change', updateReferralSelectionCount);
+
   // Add contributor button
   const addBtn = document.getElementById('addContributorBtn');
   if (addBtn) {
@@ -68,19 +78,19 @@ async function loadContributorsList() {
   const tbody = document.getElementById('contributorsBody');
   if (!tbody) return;
   
-  tbody.innerHTML = '<tr><td colspan="7" class="empty">جاري التحميل...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" class="empty">جاري التحميل...</td></tr>';
   
   // Check if Firebase is available
   if (typeof firebase === 'undefined' || !firebase.firestore) {
     console.error('Firebase not available in loadContributorsList');
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ Firebase غير متاحر - جاري إعادة المحاولة...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">❌ Firebase غير متاحر - جاري إعادة المحاولة...</td></tr>';
     
     // Retry after 2 seconds
     setTimeout(() => {
       if (typeof firebase !== 'undefined' && firebase.firestore) {
         loadContributorsList();
       } else {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ فشل تحميل Firebase</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">❌ فشل تحميل Firebase</td></tr>';
       }
     }, 2000);
     return;
@@ -102,7 +112,7 @@ async function loadContributorsList() {
     }
   } catch (error) {
     console.error('Error loading contributors:', error);
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ خطأ في تحميل البيانات</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">❌ خطأ في تحميل البيانات</td></tr>';
   }
 }
 
@@ -110,8 +120,9 @@ function renderContributorsTable(contributors) {
   const tbody = document.getElementById('contributorsBody');
   if (!tbody) return;
   
+  document.dispatchEvent(new Event('contributors-updated'));
   if (contributors.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">لا يوجد مساهمون</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">لا يوجد مساهمون</td></tr>';
     return;
   }
   
@@ -120,7 +131,9 @@ function renderContributorsTable(contributors) {
     
     return `
       <tr style="${contributor.archived === true ? 'opacity:0.65' : ''}">
-        <td>${contributor.name}</td>
+        <td><input type="checkbox" data-contributor-id="${escapeReferralHtml(contributor.id)}" aria-label="تحديد ${escapeReferralHtml(contributor.name)}"></td>
+        <td>${escapeReferralHtml(contributor.name)}</td>
+        <td>${escapeReferralHtml(referralName(contributor.referredById))}</td>
         <td>${contributor.phone || '-'}</td>
         <td>${contributor.archived === true ? '<span class="badge badge-red">مؤرشف</span>' : '<span class="badge badge-green">نشط</span>'}</td>
         <td>${stats.count}</td>
@@ -140,6 +153,8 @@ function renderContributorsTable(contributors) {
       </tr>
     `;
   }).join('');
+  filterContributors();
+  updateReferralSelectionCount();
 }
 
 async function toggleContributorArchive(contributorId) {
@@ -191,6 +206,7 @@ async function addNewContributor() {
   
   const name = nameInput.value.trim();
   const phone = phoneInput.value.trim();
+  const referredById = selectedReferral('newContributorReferral');
   
   if (!name) {
     showToast('❌ أدخل اسم المساهم', true);
@@ -208,16 +224,18 @@ async function addNewContributor() {
   }
   
   try {
+    await validateNewReferral(referredById);
     if (window._demoMode) {
       // Add to demo data
       const newId = 'demo_' + Date.now();
-      allContributors.push({ id: newId, name, phone, archived: false });
+      allContributors.push({ id: newId, name, phone, archived: false, referredById });
       showToast('✅ تم إضافة المساهم (وضع تجريبي)');
     } else {
       // Add to Firebase
       await firebase.firestore().collection('contributors').add({
         name,
         phone,
+        referredById,
         archived: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -227,6 +245,7 @@ async function addNewContributor() {
     // Clear form
     nameInput.value = '';
     phoneInput.value = '';
+    resetReferral('newContributorReferral');
     
     // Reload list
     loadContributorsList();
@@ -242,6 +261,7 @@ function editContributor(contributorId) {
   if (!contributor) return;
   
   currentEditId = contributorId;
+  fillReferralSelect(document.getElementById('editContributorReferral'), contributorId, contributor.referredById || '');
   
   // Populate modal fields
   document.getElementById('editContributorName').value = contributor.name;
@@ -280,23 +300,9 @@ async function saveContributorEdit() {
   }
   
   try {
-    if (window._demoMode) {
-      // Update demo data
-      const index = allContributors.findIndex(c => c.id === currentEditId);
-      if (index !== -1) {
-        allContributors[index].name = name;
-        allContributors[index].phone = phone;
-      }
-      showToast('✅ تم تحديث البيانات (وضع تجريبي)');
-    } else {
-      // Update Firebase
-      await firebase.firestore().collection('contributors').doc(currentEditId).update({
-        name,
-        phone
-      });
-      showToast('✅ تم تحديث البيانات بنجاح');
-    }
-    
+    await saveReferralAssignments([currentEditId], selectedReferral('editContributorReferral'), { name, phone });
+    showToast('✅ تم تحديث البيانات بنجاح');
+
     closeEditModal();
     loadContributorsList();
     
@@ -310,6 +316,10 @@ async function deleteContributor(contributorId) {
   const contributor = allContributors.find(c => c.id === contributorId);
   if (!contributor) return;
   
+  if (allContributors.some(c => c.referredById === contributorId)) {
+    showToast('❌ هذا المساهم مسؤول عن مجموعة؛ انقل التابعين له أو أزل ربطهم أولاً، أو استخدم الأرشفة', true);
+    return;
+  }
   // Check if contributor has payments
   const hasPayments = allPayments.some(p => p.contributorId === contributorId);
   
@@ -360,9 +370,34 @@ function filterContributors() {
     const text = row.textContent.toLowerCase();
     row.style.display = text.includes(searchTerm) ? '' : 'none';
   });
+  updateReferralSelectionCount();
 }
 
 // Make functions globally accessible
 window.editContributor = editContributor;
 window.deleteContributor = deleteContributor;
 window.toggleContributorArchive = toggleContributorArchive;
+
+
+function updateReferralSelectionCount() {
+  const boxes = [...document.querySelectorAll('[data-contributor-id]')];
+  document.getElementById('referralSelectionCount').textContent = `المحدد: ${boxes.filter(b => b.checked).length}`;
+  const visible = boxes.filter(b => b.closest('tr').style.display !== 'none');
+  const toggle = document.getElementById('selectVisibleContributors');
+  toggle.checked = visible.length > 0 && visible.every(b => b.checked);
+  toggle.indeterminate = visible.some(b => b.checked) && !toggle.checked;
+}
+async function assignBulkReferral() {
+  const ids = [...document.querySelectorAll('[data-contributor-id]:checked')].map(b => b.dataset.contributorId);
+  const owner = selectedReferral('bulkContributorReferral');
+  if (!ids.length) return showToast('حدد مساهمًا واحدًا على الأقل', true);
+  if (!confirm(`تعيين ${referralName(owner)} للمساهمين المحددين (${ids.length})؟ لن تتغير المدفوعات.`)) return;
+  const btn = document.getElementById('assignReferralBtn');
+  btn.disabled = true;
+  try {
+    await saveReferralAssignments(ids, owner);
+    await loadContributorsList();
+    showToast('✅ تم حفظ الربط دون تغيير المدفوعات');
+  } catch (error) { showToast('❌ ' + error.message, true); }
+  finally { btn.disabled = false; }
+}
