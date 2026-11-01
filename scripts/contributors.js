@@ -1,40 +1,22 @@
-// Contributors management page
+// Contributors management page. Data is loaded once by firebase-config.
 document.addEventListener('DOMContentLoaded', () => {
-  // Wait for Firebase to be ready before binding events
-  waitForFirebase().then(() => {
-    bindContributorsEvents();
-    loadContributorsList();
-  });
+  bindContributorsEvents();
+  const renderInitial = () => renderContributorsTable(allContributors);
+  if (window._referralDataLoaded) renderInitial();
+  else document.addEventListener('contributors-updated', renderInitial, { once: true });
 });
 
 let currentEditId = null;
 
-function waitForFirebase() {
-  return new Promise((resolve) => {
-    if (typeof firebase !== 'undefined' && firebase.firestore) {
-      console.log('Firebase already loaded');
-      resolve();
-    } else {
-      console.log('Waiting for Firebase to load...');
-      const checkFirebase = setInterval(() => {
-        if (typeof firebase !== 'undefined' && firebase.firestore) {
-          console.log('Firebase loaded successfully');
-          clearInterval(checkFirebase);
-          resolve();
-        }
-      }, 100);
-      
-      // Fallback after 10 seconds
-      setTimeout(() => {
-        clearInterval(checkFirebase);
-        console.warn('Firebase loading timeout - proceeding anyway');
-        resolve();
-      }, 10000);
+function bindContributorsEvents() {
+  document.addEventListener('referral-save-retry', () => {
+    document.getElementById('referralSaveStatus').textContent = 'الخدمة مشغولة (429)، سنعيد المحاولة تلقائيًا بعد انتظار قصير...';
+  });
+  document.addEventListener('data-load-failed', () => {
+    if (!window._referralDataLoaded) {
+      document.getElementById('contributorsBody').innerHTML = '<tr><td colspan="9" class="empty">تعذر تحميل البيانات. أعد تحميل الصفحة بعد قليل.</td></tr>';
     }
   });
-}
-
-function bindContributorsEvents() {
   document.getElementById('clearContributorsSearch').addEventListener('click', () => {
     const input = document.getElementById('searchContributors');
     input.value = ''; filterContributors(); input.focus();
@@ -407,16 +389,34 @@ function updateReferralSelectionCount() {
   toggle.indeterminate = visible.some(b => b.checked) && !toggle.checked;
 }
 async function assignBulkReferral() {
+  const btn = document.getElementById('assignReferralBtn');
+  if (btn.disabled) return;
   const ids = [...document.querySelectorAll('[data-contributor-id]:checked')].map(b => b.dataset.contributorId);
   const owner = selectedReferral('bulkContributorReferral');
   if (!ids.length) return showToast('حدد مساهمًا واحدًا على الأقل', true);
   if (!confirm(`تعيين ${referralName(owner)} للمساهمين المحددين (${ids.length})؟ لن تتغير المدفوعات.`)) return;
-  const btn = document.getElementById('assignReferralBtn');
+  const status = document.getElementById('referralSaveStatus');
+  const originalText = btn.textContent;
   btn.disabled = true;
+  btn.textContent = 'جاري حفظ الربط...';
+  status.textContent = `جاري تعيين المسؤول لـ ${ids.length} مساهم...`;
   try {
     await saveReferralAssignments(ids, owner);
-    await loadContributorsList();
-    showToast('✅ تم حفظ الربط دون تغيير المدفوعات');
-  } catch (error) { showToast('❌ ' + error.message, true); }
-  finally { btn.disabled = false; }
+    // The successful transaction updates the local contributor list. No full reload needed.
+    document.querySelectorAll('[data-contributor-id]').forEach(box => {
+      if (ids.includes(box.dataset.contributorId)) box.checked = false;
+    });
+    const remainingSelection = new Set([...document.querySelectorAll('[data-contributor-id]:checked')].map(box => box.dataset.contributorId));
+    renderContributorsTable(allContributors);
+    document.querySelectorAll('[data-contributor-id]').forEach(box => { box.checked = remainingSelection.has(box.dataset.contributorId); });
+    updateReferralSelectionCount();
+    status.textContent = '✅ تم حفظ الربط دون تغيير المدفوعات';
+    showToast(status.textContent);
+  } catch (error) {
+    status.textContent = '❌ ' + referralSaveError(error);
+    showToast(status.textContent, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
