@@ -14,3 +14,21 @@
 [hidden] { display: none !important; }
 .referral-bulk .referral-member-search { flex-basis: 100%; }
 #contributorsSearchCount { font-size: 12px; color: #b9dcf5; }
+
+.referral-bulk { min-width: 0; }
+.referral-bulk .form-group { min-width: 0; }
+#searchContributors { min-height: 46px; background: #132238; color: #f1f5f9; border-color: #526b84; }
+#searchContributors::placeholder { color: #b7c8da; opacity: 1; }
+#searchContributors:focus { border-color: #63d7ad; outline: 2px solid #63d7ad; outline-offset: 2px; }
+.referral-bulk .ts-control { min-height: 46px; }
+.referral-bulk .ts-control input::placeholder { color: #b7c8da; opacity: 1; }
+#referralSaveStatus { color: #deebf7; line-height: 1.8; }
+@media (max-width: 600px) {
+  .referral-bulk { padding: 14px; }
+  .referral-bulk .form-group { flex-basis: 100%; }
+  #assignReferralBtn { width: 100%; white-space: normal; }
+}
+.ts-wrapper.single.input-active .ts-control { background: #132238; color: #f1f5f9; }
+.ts-wrapper .ts-control input { background: transparent; border: 0; padding: 0; box-shadow: none; }
+.ts-wrapper .ts-control input:focus { background: transparent; border: 0; outline: none; box-shadow: none; }
+.ts-dropdown .option.active { background: #214c42; color: #fff; }

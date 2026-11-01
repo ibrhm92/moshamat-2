@@ -19,7 +19,8 @@ function fillReferralSelect(select, excludedId = '', selected = select?.value ||
     select.replaceChildren(...options.map(o => new Option(o.text, o.value)));
     select.value = selected;
     if (typeof TomSelect !== 'undefined') new TomSelect(select, {
-      create: false, maxItems: 1, allowEmptyOption: true,
+      create: false, maxItems: 1, maxOptions: null, allowEmptyOption: true,
+      placeholder: 'اختر المسؤول أو اكتب اسمه للبحث...',
       score(search) {
         const normalize = text => String(text).normalize('NFD').replace(/[\u0610-\u061A\u064B-\u065F\u0670]/g, '').replace(/ـ/g, '').replace(/[أإآٱ]/g, 'ا').replace(/[ىيئ]/g, 'ي').replace(/ؤ/g, 'و').replace(/ة/g, 'ه').replace(/\s+/g, ' ').trim().toLowerCase();
         return item => normalize(item.text).includes(normalize(search)) ? 1 : 0;
@@ -59,7 +60,7 @@ async function saveReferralAssignments(ids, ownerId, extra = {}) {
   } else {
     const db = firebase.firestore();
     // Read and validate the actual ancestor chain in the same transaction as the updates.
-    await db.runTransaction(async tx => {
+    await retryReferralRateLimit(() => db.runTransaction(async tx => {
       const nodes = new Map();
       async function read(id) {
         if (!nodes.has(id)) {
@@ -83,7 +84,7 @@ async function saveReferralAssignments(ids, ownerId, extra = {}) {
       Referrals.validate([...nodes.values()], assignments);
       if (ownerId && nodes.get(ownerId).archived === true && ids.some(id => nodes.get(id).referredById !== ownerId)) throw new Error('لا يمكن تعيين مسؤول مؤرشف');
       ids.forEach(id => tx.update(db.collection('contributors').doc(id), { ...extra, referredById: ownerId || null }));
-    });
+    }));
   }
   ids.forEach(id => Object.assign(allContributors.find(c => c.id === id) || {}, extra, { referredById: ownerId || null }));
   document.dispatchEvent(new Event('contributors-updated'));
@@ -92,4 +93,26 @@ document.addEventListener('DOMContentLoaded', refreshReferralSelectors);
 document.addEventListener('contributors-updated', refreshReferralSelectors);
 function escapeReferralHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function isReferralRateLimit(error) {
+  return error?.status === 429 || String(error?.code || '') === '429' ||
+    /^(?:firestore\/)?resource-exhausted$/.test(String(error?.code || '')) ||
+    /\b429\b/.test(String(error?.message || ''));
+}
+async function retryReferralRateLimit(operation) {
+  // Assignments are idempotent updates to contributor fields only. Never retry payment creation.
+  for (let attempt = 0; ; attempt++) {
+    try { return await operation(); }
+    catch (error) {
+      if (!isReferralRateLimit(error) || attempt >= 2) throw error;
+      document.dispatchEvent(new Event('referral-save-retry'));
+      await new Promise(resolve => setTimeout(resolve, 1500 * (2 ** attempt)));
+    }
+  }
+}
+function referralSaveError(error) {
+  return isReferralRateLimit(error)
+    ? 'الخدمة تحدّ الطلبات مؤقتًا (429). انتظر قليلًا ثم أعد المحاولة؛ الأسماء المحددة محفوظة.'
+    : 'تعذر حفظ الربط: ' + (error?.message || 'خطأ غير معروف');
 }

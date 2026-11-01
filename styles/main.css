@@ -245,6 +245,7 @@ label {
 select,
 input[type="number"],
 input[type="text"],
+input[type="search"],
 input[type="tel"] {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);

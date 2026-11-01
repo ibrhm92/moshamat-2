@@ -47,6 +47,7 @@ const fs = require('node:fs');
 function persistenceHarness() {
   const records = structuredClone(people);
   const writes = [];
+  const delays = [];
   const db = {
     collection(name) { return { doc(id) { return { name, id }; } }; },
     async runTransaction(callback) {
@@ -65,10 +66,11 @@ function persistenceHarness() {
   };
   const context = vm.createContext({
     window: { _demoMode: false }, Referrals, allContributors: structuredClone(people),
+    setTimeout(resolve, delay) { delays.push(delay); resolve(); },
     firebase: { firestore: () => db }, document: { addEventListener() {}, dispatchEvent() {} }, Event: class {}
   });
   vm.runInContext(fs.readFileSync(require.resolve('../scripts/referrals.js'), 'utf8'), context);
-  return { context, writes, records };
+  return { context, writes, records, db, delays };
 }
 test('transaction updates optional owner only; bulk rejection is atomic and old fields survive', async () => {
   const h = persistenceHarness();
@@ -82,4 +84,33 @@ test('transaction updates optional owner only; bulk rejection is atomic and old 
   assert.equal(h.records.find(c => c.id === 'b').name, 'محمد');
   await h.context.saveReferralAssignments(['b'], null, { name: 'محمد الجديد', phone: '01012345678' });
   assert.equal(h.records.find(c => c.id === 'b').referredById, null);
+});
+
+test('429 gets bounded backoff and succeeds without duplicate contributor updates', async () => {
+  const h = persistenceHarness();
+  const run = h.db.runTransaction.bind(h.db);
+  let attempts = 0;
+  h.db.runTransaction = async callback => {
+    if (++attempts < 3) throw Object.assign(new Error('Server responded with status 429'), { code: 'resource-exhausted' });
+    return run(callback);
+  };
+  await h.context.saveReferralAssignments(['b', 'c'], 'legacy');
+  assert.equal(attempts, 3); assert.deepEqual(h.delays, [1500, 3000]);
+  assert.equal(h.writes.length, 2);
+  assert.equal(h.records.find(c => c.id === 'b').referredById, 'legacy');
+});
+test('persistent rate limits stop after three attempts with no speculative local changes', async () => {
+  const h = persistenceHarness(); const before = JSON.stringify(h.context.allContributors);
+  let attempts = 0;
+  h.db.runTransaction = async () => { attempts++; throw { status: 429 }; };
+  await assert.rejects(() => h.context.saveReferralAssignments(['b'], 'legacy'));
+  assert.equal(attempts, 3); assert.equal(h.writes.length, 0);
+  assert.equal(JSON.stringify(h.context.allContributors), before);
+  assert.match(h.context.referralSaveError({ status: 429 }), /التحديد|المحددة/);
+});
+test('validation and permission errors never trigger rate-limit retries', async () => {
+  const h = persistenceHarness(); let attempts = 0;
+  h.db.runTransaction = async () => { attempts++; throw { code: 'permission-denied' }; };
+  await assert.rejects(() => h.context.saveReferralAssignments(['b'], 'legacy'));
+  assert.equal(attempts, 1); assert.deepEqual(h.delays, []);
 });
